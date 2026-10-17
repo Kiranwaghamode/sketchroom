@@ -36,9 +36,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 3 done. Next: Phase 4 (Save boards to Postgres).
+**Current status:** Phase 4 done. Next: Phase 5 (Permissions and share links).
 
-**Overall progress:** 4 / 11 phases complete (36%)
+**Overall progress:** 5 / 11 phases complete (45%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
@@ -46,7 +46,7 @@
 | 1 | Auth and dashboard | ✅ Done | 2026-10-17 |
 | 2 | Canvas (single user, data in Yjs) | ✅ Done | 2026-10-17 |
 | 3 | Real-time sync server | ✅ Done | 2026-10-17 |
-| 4 | Save boards to Postgres | ⬜ Not started | — |
+| 4 | Save boards to Postgres | ✅ Done | 2026-10-17 |
 | 5 | Permissions and share links | ⬜ Not started | — |
 | 6 | Live cursors and who's online | ⬜ Not started | — |
 | 7 | Offline support | ⬜ Not started | — |
@@ -455,17 +455,17 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** boards are kept after everyone leaves and after the sync server restarts.
 
 **Tasks**
-- [ ] 4.1 `apps/sync/src/persistence.ts`: configure `@hocuspocus/extension-database`:
+- [x] 4.1 `apps/sync/src/persistence.ts`: configure `@hocuspocus/extension-database`:
   - `fetch({ documentName })` → `prisma.board.findUnique({ where: { id: documentName }, select: { state: true } })` → return `state` (or `null` for a new board).
   - `store({ documentName, state })` → `prisma.board.update({ where: { id }, data: { state } })`. Use the full state the extension provides (equivalent to `Y.encodeStateAsUpdate(doc)`).
-- [ ] 4.2 Configure the server's `debounce: 2000` and `maxDebounce: 10000`, so it saves after 2 seconds of quiet and at least every 10 seconds while edits continue. Hocuspocus also saves when the last client disconnects. Confirm that this happens.
-- [ ] 4.3 Ignore unknown board IDs. If the board doesn't exist in Postgres, reject the connection (handled with auth in Phase 5; for now just log it).
-- [ ] 4.4 `Board.updatedAt` should change when the content is saved, so the dashboard's "Edited …" stays correct.
-- [ ] 4.5 Show a small "Saved" / "Saving…" text next to the status dot. A simple approach: "Saving…" while the provider has unsynced changes, "Saved" once it reports everything is synced.
+- [x] 4.2 Configure the server's `debounce: 2000` and `maxDebounce: 10000`, so it saves after 2 seconds of quiet and at least every 10 seconds while edits continue. Hocuspocus also saves when the last client disconnects. Confirm that this happens.
+- [x] 4.3 Ignore unknown board IDs. If the board doesn't exist in Postgres, reject the connection (handled with auth in Phase 5; for now just log it).
+- [x] 4.4 `Board.updatedAt` should change when the content is saved, so the dashboard's "Edited …" stays correct.
+- [x] 4.5 Show a small "Saved" / "Saving…" text next to the status dot. A simple approach: "Saving…" while the provider has unsynced changes, "Saved" once it reports everything is synced.
 
 **Done when**
-- [ ] Draw something, close every tab, restart the sync server, reopen the board: everything is still there.
-- [ ] The logs show the database is **not** written on every mouse move (the debounce works).
+- [x] Draw something, close every tab, restart the sync server, reopen the board: everything is still there.
+- [x] The logs show the database is **not** written on every mouse move (the debounce works).
 
 ---
 
@@ -645,3 +645,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-17 – Phase 1 complete – better-auth email/password, login + signup, proxy.ts redirects, dashboard (create/rename/delete/leave, role badges, empty state), board page with access check (real 404), seed script – Next 16 uses proxy.ts instead of middleware.ts; demo password is in apps/web/.env (DEMO_PASSWORD).
 - 2026-10-17 – Phase 2 complete – Y.Doc schema, mutations (+ updateShapes batch), hooks, zustand editor store, Konva canvas (zoom/pan, rect/ellipse/text/pen, select/marquee/move/resize), toolbar, selection panel, shortcuts, 9 vitest tests – board content is in memory only until Phase 3; Safari pinch handled via gesture events but not tested in Safari.
 - 2026-10-17 – Phase 3 complete – Hocuspocus 4.7 sync server + Logger, connectBoard provider, Strict-Mode-safe BoardClient, connection status dot, loading state, TopBar (rename, status, Share/History placeholders), Dockerfile – edits arrive in ~4 ms; Docker image build not tested (Docker Desktop not running); image runs `node src/index.ts` (Node 24 type stripping) instead of dist/index.js, see decisions.md.
+- 2026-10-17 – Phase 4 complete – Database extension (fetch/store Board.state), debounce 2 s / max 10 s, save on last disconnect, unknown boards logged, Saved/Saving… label – 400 drag writes → 2 DB saves; connections to unknown boards are only logged until Phase 5 rejects them.

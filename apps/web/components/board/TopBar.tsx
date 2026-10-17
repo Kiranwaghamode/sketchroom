@@ -25,6 +25,8 @@ type Props = {
   title: string;
   isOwner: boolean;
   status: ConnectionStatus;
+  /** Undefined until the board has loaded. */
+  saving?: boolean;
 };
 
 export function TopBar({
@@ -32,6 +34,7 @@ export function TopBar({
   title: initialTitle,
   isOwner,
   status,
+  saving,
 }: Props) {
   const [title, setTitle] = useState(initialTitle);
   const [editing, setEditing] = useState(false);
@@ -119,6 +122,11 @@ export function TopBar({
         </TooltipTrigger>
         <TooltipContent side="bottom">{STATUS[status].label}</TooltipContent>
       </Tooltip>
+      {status === "connected" && saving !== undefined && (
+        <span className="text-xs text-muted-foreground">
+          {saving ? "Saving…" : "Saved"}
+        </span>
+      )}
 
       <div className="ml-auto flex items-center gap-2">
         {/* Online user avatars: Phase 6 */}

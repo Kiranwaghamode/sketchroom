@@ -82,6 +82,8 @@ export type ConnectionState = {
   status: ConnectionStatus;
   /** True once the first sync with the server has finished (stays true afterwards). */
   loaded: boolean;
+  /** True while local changes haven't been acknowledged by the server yet. */
+  saving: boolean;
 };
 
 function connectionStore(provider: HocuspocusProvider): Store<ConnectionState> {
@@ -96,7 +98,7 @@ function connectionStore(provider: HocuspocusProvider): Store<ConnectionState> {
           ? "connected"
           : "connecting";
     if (provider.synced) loaded = true;
-    return { status, loaded };
+    return { status, loaded, saving: provider.hasUnsyncedChanges };
   };
   let snapshot = read();
   return {
@@ -105,7 +107,8 @@ function connectionStore(provider: HocuspocusProvider): Store<ConnectionState> {
         const next = read();
         if (
           next.status !== snapshot.status ||
-          next.loaded !== snapshot.loaded
+          next.loaded !== snapshot.loaded ||
+          next.saving !== snapshot.saving
         ) {
           snapshot = next;
           onChange();
@@ -115,10 +118,12 @@ function connectionStore(provider: HocuspocusProvider): Store<ConnectionState> {
       provider.on("status", handler);
       provider.on("synced", handler);
       provider.on("close", handler);
+      provider.on("unsyncedChanges", handler);
       return () => {
         provider.off("status", handler);
         provider.off("synced", handler);
         provider.off("close", handler);
+        provider.off("unsyncedChanges", handler);
       };
     },
     get: () => snapshot,

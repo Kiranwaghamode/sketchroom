@@ -56,11 +56,12 @@ export function BoardClient(props: Props) {
 }
 
 function ConnectedBoard({ session, ...props }: Props & { session: Session }) {
-  const { status, loaded } = useConnectionStatus(session.provider);
+  const { status, loaded, saving } = useConnectionStatus(session.provider);
   return (
     <BoardLayout
       {...props}
       status={status}
+      saving={saving}
       session={loaded ? session : undefined}
     />
   );
@@ -72,9 +73,11 @@ function BoardLayout({
   title,
   role,
   status,
+  saving,
   session,
 }: Props & {
   status: React.ComponentProps<typeof TopBar>["status"];
+  saving?: boolean;
   session?: Session;
 }) {
   return (
@@ -84,6 +87,7 @@ function BoardLayout({
         title={title}
         isOwner={role === "OWNER"}
         status={status}
+        saving={session ? saving : undefined}
       />
       <main className="relative flex-1 overflow-hidden">
         {session ? (

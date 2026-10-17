@@ -123,3 +123,16 @@ Short records of non-obvious technical choices: what, why, and the alternatives 
 **Why:** The sync server imports `@whiteboard/db` and `@whiteboard/shared`, which ship TypeScript source, and Prisma 7's generated client imports files with `.ts` extensions. Compiling all of that to `dist/` would need a bundler (not in the stack) or a multi-package `tsc` setup that rewrites import extensions. Node 24 runs all of it unchanged, which was verified locally, including a Prisma query.
 
 **Alternatives considered:** `tsc` with project references and `rewriteRelativeImportExtensions` (more config in three packages); running `tsx` in production (an extra runtime dependency doing what Node already does).
+
+---
+
+## 2026-10-17 – Saving boards (Phase 4)
+
+**What:** The Database extension loads `Board.state` in `fetch` and writes the full encoded Y.Doc in `store`, with `debounce: 2000` and `maxDebounce: 10000`. `store` uses `updateMany` with the board id instead of `update`.
+
+**Why:**
+
+- `updateMany` doesn't throw when the board is gone (deleted from the dashboard while someone still had it open). It reports `count: 0`, and we log it instead of crashing the save.
+- The top bar's "Saving…" / "Saved" follows the provider's unsynced-changes counter. So "Saved" means the sync server has received every change, and the database write follows within the debounce window. That's what PLAN task 4.5 asks for, and it's the honest signal the client has. The client can't see the database write itself.
+
+**Verified:** 400 writes over a 17-second simulated drag produced 2 database saves (one at the 10 s max, one 2 s after the last write). Closing the last connection triggers a save within milliseconds. Board content survives a sync-server restart.
