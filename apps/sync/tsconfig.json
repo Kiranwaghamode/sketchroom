@@ -3,8 +3,10 @@
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "dist",
-    "rootDir": "src",
+    "noEmit": true,
+    // Production runs the TypeScript directly with Node's type stripping
+    // (`node src/index.ts`), so only syntax Node can erase is allowed.
+    "erasableSyntaxOnly": true,
     "types": ["node"]
   },
   "include": ["src"]

@@ -36,16 +36,16 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 2 done. Next: Phase 3 (Real-time sync server).
+**Current status:** Phase 3 done. Next: Phase 4 (Save boards to Postgres).
 
-**Overall progress:** 3 / 11 phases complete (27%)
+**Overall progress:** 4 / 11 phases complete (36%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
 | 0 | Project setup | ✅ Done | 2026-10-17 |
 | 1 | Auth and dashboard | ✅ Done | 2026-10-17 |
 | 2 | Canvas (single user, data in Yjs) | ✅ Done | 2026-10-17 |
-| 3 | Real-time sync server | ⬜ Not started | — |
+| 3 | Real-time sync server | ✅ Done | 2026-10-17 |
 | 4 | Save boards to Postgres | ⬜ Not started | — |
 | 5 | Permissions and share links | ⬜ Not started | — |
 | 6 | Live cursors and who's online | ⬜ Not started | — |
@@ -434,19 +434,19 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** two browser windows on the same board see each other's changes instantly.
 
 **Tasks**
-- [ ] 3.1 `apps/sync/src/index.ts`: create a **Hocuspocus** server on `PORT` (default 1234) with the Logger extension. No auth or persistence yet. Those come in Phases 4 and 5.
-- [ ] 3.2 `lib/yjs/provider.ts`: `connectBoard(boardId, doc)` creates a `HocuspocusProvider` with `{ url: NEXT_PUBLIC_SYNC_URL, name: boardId, document: doc }` and returns it with a cleanup function.
-- [ ] 3.3 The board page (client component `BoardClient`) creates **one** Y.Doc + provider per board in a `useEffect`/`useMemo`, and destroys both on unmount. Watch out for React Strict Mode running effects twice.
-- [ ] 3.4 Connection status: track the provider's status and `synced` events in a small hook `useConnectionStatus()`. Show it as a colored dot in the top bar with a tooltip ("Connected", "Connecting…", "Offline").
-- [ ] 3.5 Until the first sync finishes, show a light "Loading board…" in place of the canvas. (Phase 7 changes this to load from IndexedDB first.)
-- [ ] 3.6 Build the board **TopBar** now: back arrow → dashboard, board title (click to rename for owners), status dot, and placeholders for avatars, Share and History.
-- [ ] 3.7 Write `apps/sync/Dockerfile` (Node LTS, pnpm, builds `packages/db` and `apps/sync`, runs `node dist/index.js`).
-- [ ] 3.8 Add a note to `docs/decisions.md`: why Hocuspocus, and why it isn't part of Next.js.
+- [x] 3.1 `apps/sync/src/index.ts`: create a **Hocuspocus** server on `PORT` (default 1234) with the Logger extension. No auth or persistence yet. Those come in Phases 4 and 5.
+- [x] 3.2 `lib/yjs/provider.ts`: `connectBoard(boardId, doc)` creates a `HocuspocusProvider` with `{ url: NEXT_PUBLIC_SYNC_URL, name: boardId, document: doc }` and returns it with a cleanup function.
+- [x] 3.3 The board page (client component `BoardClient`) creates **one** Y.Doc + provider per board in a `useEffect`/`useMemo`, and destroys both on unmount. Watch out for React Strict Mode running effects twice.
+- [x] 3.4 Connection status: track the provider's status and `synced` events in a small hook `useConnectionStatus()`. Show it as a colored dot in the top bar with a tooltip ("Connected", "Connecting…", "Offline").
+- [x] 3.5 Until the first sync finishes, show a light "Loading board…" in place of the canvas. (Phase 7 changes this to load from IndexedDB first.)
+- [x] 3.6 Build the board **TopBar** now: back arrow → dashboard, board title (click to rename for owners), status dot, and placeholders for avatars, Share and History.
+- [x] 3.7 Write `apps/sync/Dockerfile` (Node LTS, pnpm, builds `packages/db` and `apps/sync`, runs `node dist/index.js`).
+- [x] 3.8 Add a note to `docs/decisions.md`: why Hocuspocus, and why it isn't part of Next.js.
 
 **Done when**
-- [ ] With two windows on the same board, every create, move, resize, recolor, text edit and delete appears in the other window in well under a second.
-- [ ] Two people dragging different shapes at the same time both work. Two people recoloring the same shape both end up with the same color.
-- [ ] The status dot is green when connected, and changes when the sync server is stopped.
+- [x] With two windows on the same board, every create, move, resize, recolor, text edit and delete appears in the other window in well under a second.
+- [x] Two people dragging different shapes at the same time both work. Two people recoloring the same shape both end up with the same color.
+- [x] The status dot is green when connected, and changes when the sync server is stopped.
 
 ---
 
@@ -644,3 +644,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-17 – Phase 0 complete – pnpm monorepo (web: Next.js 16 + shadcn, sync: tsx stub, db: Prisma 7 + Better Auth tables, shared: zod shapes), Neon dev DB migrated, CI for typecheck + lint – shared packages ship TS source; sync production build is handled in Phase 3.
 - 2026-10-17 – Phase 1 complete – better-auth email/password, login + signup, proxy.ts redirects, dashboard (create/rename/delete/leave, role badges, empty state), board page with access check (real 404), seed script – Next 16 uses proxy.ts instead of middleware.ts; demo password is in apps/web/.env (DEMO_PASSWORD).
 - 2026-10-17 – Phase 2 complete – Y.Doc schema, mutations (+ updateShapes batch), hooks, zustand editor store, Konva canvas (zoom/pan, rect/ellipse/text/pen, select/marquee/move/resize), toolbar, selection panel, shortcuts, 9 vitest tests – board content is in memory only until Phase 3; Safari pinch handled via gesture events but not tested in Safari.
+- 2026-10-17 – Phase 3 complete – Hocuspocus 4.7 sync server + Logger, connectBoard provider, Strict-Mode-safe BoardClient, connection status dot, loading state, TopBar (rename, status, Share/History placeholders), Dockerfile – edits arrive in ~4 ms; Docker image build not tested (Docker Desktop not running); image runs `node src/index.ts` (Node 24 type stripping) instead of dist/index.js, see decisions.md.

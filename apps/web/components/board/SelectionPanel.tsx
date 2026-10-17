@@ -23,7 +23,7 @@ import { getShapes } from "@/lib/yjs/schema";
 import { useEditor, type Camera } from "@/stores/editor";
 
 const PANEL_GAP = 12;
-const TOP_SAFE_AREA = 104; // top bar + panel height
+const TOP_SAFE_AREA = 56; // room for the panel above the selection
 
 type SelectionInfo = { box: Box | null; color: string | null };
 

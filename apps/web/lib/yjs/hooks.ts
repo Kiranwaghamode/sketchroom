@@ -1,3 +1,4 @@
+import { WebSocketStatus, type HocuspocusProvider } from "@hocuspocus/provider";
 import type { Shape } from "@whiteboard/shared";
 import { useMemo, useSyncExternalStore } from "react";
 import type * as Y from "yjs";
@@ -73,4 +74,60 @@ export function useShapeIds(doc: Y.Doc): string[] {
  */
 export function useShape(doc: Y.Doc, id: string): Shape | null {
   return useStore(useMemo(() => shapeStore(doc, id), [doc, id]));
+}
+
+export type ConnectionStatus = "connected" | "connecting" | "offline";
+
+export type ConnectionState = {
+  status: ConnectionStatus;
+  /** True once the first sync with the server has finished (stays true afterwards). */
+  loaded: boolean;
+};
+
+function connectionStore(provider: HocuspocusProvider): Store<ConnectionState> {
+  let loaded = provider.synced;
+  const read = (): ConnectionState => {
+    const socket = provider.configuration.websocketProvider.status;
+    // "Connected" means the socket is open *and* the document handshake finished.
+    const status: ConnectionStatus =
+      socket === WebSocketStatus.Disconnected
+        ? "offline"
+        : socket === WebSocketStatus.Connected && provider.synced
+          ? "connected"
+          : "connecting";
+    if (provider.synced) loaded = true;
+    return { status, loaded };
+  };
+  let snapshot = read();
+  return {
+    subscribe(onChange) {
+      const handler = () => {
+        const next = read();
+        if (
+          next.status !== snapshot.status ||
+          next.loaded !== snapshot.loaded
+        ) {
+          snapshot = next;
+          onChange();
+        }
+      };
+      handler();
+      provider.on("status", handler);
+      provider.on("synced", handler);
+      provider.on("close", handler);
+      return () => {
+        provider.off("status", handler);
+        provider.off("synced", handler);
+        provider.off("close", handler);
+      };
+    },
+    get: () => snapshot,
+  };
+}
+
+/** Connection status of the sync provider, for the status dot and the loading screen. */
+export function useConnectionStatus(
+  provider: HocuspocusProvider,
+): ConnectionState {
+  return useStore(useMemo(() => connectionStore(provider), [provider]));
 }

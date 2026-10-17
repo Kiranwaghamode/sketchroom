@@ -1,3 +1,4 @@
+import { prisma } from "@whiteboard/db";
 import { notFound } from "next/navigation";
 import { BoardClient } from "@/components/board/BoardClient";
 import { getBoardRole } from "@/lib/access";
@@ -13,5 +14,18 @@ export default async function BoardPage({ params }: PageProps<"/board/[id]">) {
   const role = await getBoardRole(user.id, id);
   if (!role) notFound();
 
-  return <BoardClient boardId={id} userId={user.id} />;
+  const board = await prisma.board.findUnique({
+    where: { id },
+    select: { title: true },
+  });
+  if (!board) notFound();
+
+  return (
+    <BoardClient
+      boardId={id}
+      userId={user.id}
+      title={board.title}
+      role={role}
+    />
+  );
 }

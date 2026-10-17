@@ -97,3 +97,29 @@ Short records of non-obvious technical choices: what, why, and the alternatives 
 **What:** The selection panel (6 swatches + Delete) floats above the selection. When nothing is selected and a drawing tool (rectangle, ellipse, text, pen) is active, the same 6 swatches (without Delete) show just above the toolbar.
 
 **Why:** PLAN task 2.10 says "picking a color with nothing selected sets the color for the next shape", but the panel is only described as appearing for a selection. Showing the swatches while a drawing tool is active gives that feature a place without adding a new UI element. Picking a color for a selection also becomes the color for the next shape.
+
+---
+
+## 2026-10-17 – Hocuspocus as the sync server, separate from Next.js
+
+**What:** `apps/sync` is a standalone Node process running Hocuspocus (`@hocuspocus/server` 4.7). Browsers connect with `@hocuspocus/provider`. The room (document) name is the board id.
+
+**Why Hocuspocus:**
+
+- It implements the Yjs sync protocol and awareness over WebSockets, which we would otherwise hand-write on top of `y-protocols`: the state-vector handshake, broadcasting updates to the room, and awareness timeouts.
+- It has exactly the hooks the plan needs: `onAuthenticate` (Phase 5, JWT check and read-only connections), the Database extension with debounced `fetch`/`store` (Phase 4), and the Logger extension.
+- It keeps one in-memory Y.Doc per room and unloads it when the last client leaves, which is the right model for a single instance.
+
+**Why not inside Next.js:** Vercel runs Next.js as short-lived serverless functions. They can't keep a WebSocket open or hold a room's Y.Doc in memory between requests. The sync server has to be an always-on process (Railway or Fly.io), so it's a separate app that shares only the Prisma package with the web app.
+
+**Alternatives considered:** `y-websocket`'s server (no auth or persistence hooks, so more custom code); a hosted service (Liveblocks, PartyKit), which takes away the part of the project we want to own.
+
+---
+
+## 2026-10-17 – Sync server runs TypeScript directly on Node 24
+
+**What:** The sync server's Docker image runs `node src/index.ts`, using Node 24's built-in type stripping. There is no `dist/` folder. `pnpm build` for `apps/sync` only type-checks, and `erasableSyntaxOnly` makes TypeScript reject syntax Node can't strip (enums, namespaces, parameter properties). This differs from PLAN task 3.7, which says "runs `node dist/index.js`".
+
+**Why:** The sync server imports `@whiteboard/db` and `@whiteboard/shared`, which ship TypeScript source, and Prisma 7's generated client imports files with `.ts` extensions. Compiling all of that to `dist/` would need a bundler (not in the stack) or a multi-package `tsc` setup that rewrites import extensions. Node 24 runs all of it unchanged, which was verified locally, including a Prisma query.
+
+**Alternatives considered:** `tsc` with project references and `rewriteRelativeImportExtensions` (more config in three packages); running `tsx` in production (an extra runtime dependency doing what Node already does).

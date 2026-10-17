@@ -1,25 +1,41 @@
 "use client";
 
+import type { HocuspocusProvider } from "@hocuspocus/provider";
+import type { Role } from "@whiteboard/db";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import type * as Y from "yjs";
+import { useConnectionStatus } from "@/lib/yjs/hooks";
+import { connectBoard } from "@/lib/yjs/provider";
 import { createBoardDoc } from "@/lib/yjs/schema";
 import { useEditor } from "@/stores/editor";
 import { SelectionPanel } from "./SelectionPanel";
 import { Toolbar } from "./Toolbar";
+import { TopBar } from "./TopBar";
 
 // Konva needs the browser (canvas), so never render it on the server.
 const Canvas = dynamic(() => import("@/components/canvas/Canvas"), {
   ssr: false,
 });
 
-type Props = { boardId: string; userId: string };
+type Props = { boardId: string; userId: string; title: string; role: Role };
 
-export function BoardClient({ boardId, userId }: Props) {
-  // Phase 2: one in-memory Y.Doc per board page. Phase 3 connects it to the sync server.
-  const [{ doc }] = useState(() => createBoardDoc());
+type Session = { doc: Y.Doc; provider: HocuspocusProvider };
 
+export function BoardClient(props: Props) {
+  const { boardId } = props;
+  const [session, setSession] = useState<Session | null>(null);
+
+  // One Y.Doc + provider per board, created in an effect and destroyed on unmount.
+  // In Strict Mode the effect runs twice; the first pair is fully destroyed before
+  // the second is created, so there's never more than one live connection.
   useEffect(() => {
-    // Fresh editor state for each board.
+    const { doc } = createBoardDoc();
+    const { provider, cleanup } = connectBoard(boardId, doc);
+    // The connection is an external resource created here, so its handle has to be
+    // stored from the effect; creating it during render would leak sockets.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSession({ doc, provider });
     useEditor.setState({
       tool: "select",
       selectedIds: [],
@@ -27,15 +43,61 @@ export function BoardClient({ boardId, userId }: Props) {
     });
     if (process.env.NODE_ENV !== "production") {
       // For debugging in DevTools: doc.toJSON(), editor.getState()
-      Object.assign(window, { doc, editor: useEditor });
+      Object.assign(window, { doc, provider, editor: useEditor });
     }
-  }, [boardId, doc]);
+    return () => {
+      cleanup();
+      doc.destroy();
+    };
+  }, [boardId]);
 
+  if (!session) return <BoardLayout {...props} status="connecting" />;
+  return <ConnectedBoard {...props} session={session} />;
+}
+
+function ConnectedBoard({ session, ...props }: Props & { session: Session }) {
+  const { status, loaded } = useConnectionStatus(session.provider);
   return (
-    <div className="relative h-dvh w-full overflow-hidden">
-      <Canvas doc={doc} userId={userId} />
-      <SelectionPanel doc={doc} />
-      <Toolbar />
+    <BoardLayout
+      {...props}
+      status={status}
+      session={loaded ? session : undefined}
+    />
+  );
+}
+
+function BoardLayout({
+  boardId,
+  userId,
+  title,
+  role,
+  status,
+  session,
+}: Props & {
+  status: React.ComponentProps<typeof TopBar>["status"];
+  session?: Session;
+}) {
+  return (
+    <div className="flex h-dvh flex-col overflow-hidden">
+      <TopBar
+        boardId={boardId}
+        title={title}
+        isOwner={role === "OWNER"}
+        status={status}
+      />
+      <main className="relative flex-1 overflow-hidden">
+        {session ? (
+          <>
+            <Canvas doc={session.doc} userId={userId} />
+            <SelectionPanel doc={session.doc} />
+            <Toolbar />
+          </>
+        ) : (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+            Loading board…
+          </div>
+        )}
+      </main>
     </div>
   );
 }
