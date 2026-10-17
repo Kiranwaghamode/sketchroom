@@ -26,3 +26,5 @@ Thumbs.db
 /test-results/
 /playwright-report/
 .vercel/
+/blob-report/
+/playwright/.cache/

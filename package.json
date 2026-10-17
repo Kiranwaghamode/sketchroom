@@ -11,10 +11,12 @@
     "format": "prettier --write .",
     "db:migrate": "pnpm --filter @whiteboard/db migrate",
     "db:studio": "pnpm --filter @whiteboard/db studio",
-    "db:seed": "pnpm --filter @whiteboard/web seed"
+    "db:seed": "pnpm --filter @whiteboard/web seed",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@eslint/js": "^9",
+    "@playwright/test": "^1.64.1",
     "eslint": "^9",
     "prettier": "^3.9.10",
     "typescript": "^5",

@@ -209,3 +209,17 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **Why overwriting the database doesn't work with a CRDT:** If we replaced `Board.state` with the old bytes, every connected (or offline) client still holds the newer document. On their next sync, Yjs would see those newer updates as "missing" on the server and send them back. The CRDT merges by _adding_ history, never by forgetting it, so the board would immediately turn back into the current state. Even unloading the room on the server doesn't help, because the clients reintroduce the history. Restoring as a new forward edit is the only way that sticks. As a bonus, it syncs to everyone like any other edit and one undo reverts it.
 
 **Verified:** saved "Before cleanup", deleted everything and drew new shapes (watched by a second connected editor), restored. Both windows matched the saved version exactly and stayed that way, and one Ctrl+Z brought back the pre-restore board in both windows. `lib/yjs/restore.test.ts` covers deleted, added and changed shapes, one-undo revert, syncing, and "a client with the old state syncing back doesn't undo the restore".
+
+---
+
+## 2026-10-17 – Tests, CI and sync-server limits (Phase 10)
+
+**What:**
+
+- `lib/yjs/convergence.test.ts`: two docs make random creates/updates/deletes and exchange updates in random order with duplicates (5 seeds, deterministic PRNG). Their `toJSON()` must be equal.
+- `e2e/collab.spec.ts` (Playwright): two browser contexts log in as the seeded `demo@` and `friend@` users. A draws a rectangle and B sees it; B recolors it and A sees it; A goes offline (`context.setOffline`), draws, comes back, and B sees it. The test cleans up after itself.
+- CI runs install, typecheck, lint and `pnpm test`. **Playwright runs locally** (`pnpm test:e2e`), the simpler of the two options in PLAN task 10.3. In CI it would need a Postgres service, migrations, seeding and both servers.
+- Sync server: `websocketOptions.maxPayload` = 10 MB (larger messages close the socket with code 1009), and a per-IP connection cap (`MAX_CONNECTIONS_PER_IP`, default 20). The cap is counted in `onUpgrade` (where the IP and the raw socket are available) and released when the socket closes. Rejections get HTTP 429 and are logged. The IP comes from the first `X-Forwarded-For` entry when behind a proxy. That's acceptable on Railway/Fly, where the platform proxy sets it.
+- "Try the demo" is a server action that signs in as the demo user with `DEMO_PASSWORD` from the server environment, so the password never reaches the browser.
+
+**Why the e2e test reads `window.doc`:** Asserting on the Y.Doc is exact and fast, where reading pixels from a canvas is brittle. `window.doc` is only exposed in development, so the test runs against the dev server.

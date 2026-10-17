@@ -36,7 +36,7 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 9 done. Next: Phase 10 (Tests, deploy and README).
+**Current status:** Phase 10 in progress. Done: 10.1–10.4, 10.6, 10.7. Next: 10.5 (deploy — needs the user's Railway/Fly and Vercel accounts).
 
 **Overall progress:** 10 / 11 phases complete (91%)
 
@@ -589,20 +589,20 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** the MVP is tested, deployed and easy for anyone to try.
 
 **Tasks**
-- [ ] 10.1 **Convergence test (vitest):** create two Y.Docs, make random edits on both (create, update, delete), exchange updates in random order (including duplicates), and check that `toJSON()` is equal. Run it with a few different random seeds.
-- [ ] 10.2 **Playwright end-to-end test** (`e2e/collab.spec.ts`): two browser contexts log in as two seeded users on the same board.
+- [x] 10.1 **Convergence test (vitest):** create two Y.Docs, make random edits on both (create, update, delete), exchange updates in random order (including duplicates), and check that `toJSON()` is equal. Run it with a few different random seeds.
+- [x] 10.2 **Playwright end-to-end test** (`e2e/collab.spec.ts`): two browser contexts log in as two seeded users on the same board.
   - User A draws a rectangle → user B sees it.
   - User B changes its color → user A sees the new color.
   - `contextA.setOffline(true)`, A draws a shape, then `setOffline(false)` → B sees it.
-- [ ] 10.3 CI: add `pnpm test` (vitest) to the GitHub Actions workflow. Playwright can run in CI against a Postgres service container, or as a documented local command. Pick the simpler option and document it.
-- [ ] 10.4 Basic protection on the sync server: a maximum message size and a limit on connections per IP (simple in-memory counter). Log rejected connections.
+- [x] 10.3 CI: add `pnpm test` (vitest) to the GitHub Actions workflow. Playwright can run in CI against a Postgres service container, or as a documented local command. Pick the simpler option and document it.
+- [x] 10.4 Basic protection on the sync server: a maximum message size and a limit on connections per IP (simple in-memory counter). Log rejected connections.
 - [ ] 10.5 **Deploy:**
   - Postgres → **Neon**. Run `prisma migrate deploy`.
   - Sync server → **Railway or Fly.io** using the Dockerfile. Set `DATABASE_URL`, `WS_JWT_SECRET`, `ALLOWED_ORIGIN`. It must be reachable via `wss://`.
   - Web → **Vercel**. Set `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `WS_JWT_SECRET`, `NEXT_PUBLIC_SYNC_URL=wss://...`.
   - Seed the demo user and a demo board in production.
-- [ ] 10.6 Add a "Try the demo" button on the login page that signs in as the demo user.
-- [ ] 10.7 **README.md:**
+- [x] 10.6 Add a "Try the demo" button on the login page that signs in as the demo user.
+- [x] 10.7 **README.md:**
   - One-line pitch, live demo link, demo login.
   - GIF: two windows editing together (a placeholder is fine; the user will record it).
   - Feature list (section 1 only).
