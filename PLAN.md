@@ -36,9 +36,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 8 done. Next: Phase 9 (Version history).
+**Current status:** Phase 9 done. Next: Phase 10 (Tests, deploy and README).
 
-**Overall progress:** 9 / 11 phases complete (82%)
+**Overall progress:** 10 / 11 phases complete (91%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
@@ -51,7 +51,7 @@
 | 6 | Live cursors and who's online | ✅ Done | 2026-10-17 |
 | 7 | Offline support | ✅ Done | 2026-10-17 |
 | 8 | Undo and redo | ✅ Done | 2026-10-17 |
-| 9 | Version history (save and restore) | ⬜ Not started | — |
+| 9 | Version history (save and restore) | ✅ Done | 2026-10-17 |
 | 10 | Tests, deploy and README | ⬜ Not started | — |
 
 Status values: `⬜ Not started` · `🔄 In progress` · `✅ Done`
@@ -560,12 +560,12 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** save a version of the board and restore it safely, even while other people are connected.
 
 **Tasks**
-- [ ] 9.1 Server action `saveVersion(boardId, label?)` (owner or editor only). It needs the **current** content. The simplest correct approach: the client sends `Y.encodeStateAsUpdate(doc)` (base64) from its synced doc, and the server checks access and stores it in `BoardVersion`. Only allow it when the provider is synced. Keep at most 50 versions per board and delete the oldest beyond that.
-- [ ] 9.2 **History dialog** (History button in the top bar):
+- [x] 9.1 Server action `saveVersion(boardId, label?)` (owner or editor only). It needs the **current** content. The simplest correct approach: the client sends `Y.encodeStateAsUpdate(doc)` (base64) from its synced doc, and the server checks access and stores it in `BoardVersion`. Only allow it when the provider is synced. Keep at most 50 versions per board and delete the oldest beyond that.
+- [x] 9.2 **History dialog** (History button in the top bar):
   - A **Save version** button with an optional name input.
   - A list of versions: name (or "Untitled version"), who saved it, and relative time.
   - Each item has a **Restore** button (owner and editors only). Clicking it opens a confirm dialog: "Restore this version? Everyone on the board will see it. You can undo this."
-- [ ] 9.3 `lib/yjs/restore.ts`, **restore by moving forward. Never overwrite `Board.state`.**
+- [x] 9.3 `lib/yjs/restore.ts`, **restore by moving forward. Never overwrite `Board.state`.**
   1. Fetch the version's state and load it into a **temporary** `Y.Doc` with `Y.applyUpdate`.
   2. Compare it with the live doc:
      - shape ids in live but not in the version → delete them,
@@ -573,14 +573,14 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
      - ids in both → for each property whose value differs, set the version's value,
      - set `order` to the version's order.
   3. Apply **all** of this in **one** `doc.transact(fn, LOCAL_ORIGIN)`, so it syncs as a normal edit and **one undo** reverts the whole restore.
-- [ ] 9.4 Toast after a restore: "Version restored".
-- [ ] 9.5 vitest tests for `restore.ts`: after restoring, the live doc's `toJSON()` equals the version's `toJSON()`. Cover deleted, added and changed shapes. Also test that one undo brings back the pre-restore state.
-- [ ] 9.6 Note in `docs/decisions.md`: why overwriting the database doesn't work with a CRDT (connected clients would merge the newer state back in).
+- [x] 9.4 Toast after a restore: "Version restored".
+- [x] 9.5 vitest tests for `restore.ts`: after restoring, the live doc's `toJSON()` equals the version's `toJSON()`. Cover deleted, added and changed shapes. Also test that one undo brings back the pre-restore state.
+- [x] 9.6 Note in `docs/decisions.md`: why overwriting the database doesn't work with a CRDT (connected clients would merge the newer state back in).
 
 **Done when**
-- [ ] Save a version, change a lot of things, restore: the board looks exactly like the saved version.
-- [ ] Restoring while another window is open updates that window too, and the restore doesn't get undone by the other window's sync.
-- [ ] Undo right after a restore brings back the previous state.
+- [x] Save a version, change a lot of things, restore: the board looks exactly like the saved version.
+- [x] Restoring while another window is open updates that window too, and the restore doesn't get undone by the other window's sync.
+- [x] Undo right after a restore brings back the previous state.
 
 ---
 
@@ -650,3 +650,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-17 – Phase 6 complete – awareness user + throttled world-space cursor, Cursors overlay with rAF lerp, Avatars (max 5, +N, "(you)"), beforeunload cleanup – the second "window" was a second authenticated connection in the same page (two signed-in users in one Chrome profile isn't possible); cursor animation verified with a timer-based rAF because the automated Chrome window wasn't painting.
 - 2026-10-17 – Phase 7 complete – y-indexeddb per board, load from IndexedDB or server (first wins), offline banner + "Back online" toast, browser online/offline → disconnect/reconnect, clear local copies on logout – a refresh with the browser itself offline needs a service worker (out of scope); refresh with the sync server unreachable works. Dev token fetch is slow (~4 s) because Neon is in us-east-2.
 - 2026-10-17 – Phase 8 complete – Y.UndoManager (LOCAL_ORIGIN only, 500 ms), begin/endGesture so a drag or resize is always one step even with pauses, Undo/Redo buttons with stack state, Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, Ctrl/⌘+Y, none for viewers, 5 new tests – 14 unit tests total.
+- 2026-10-17 – Phase 9 complete – saveVersion/listVersions/getVersionState actions (role checks, 4 MB cap, newest 50 kept), History dialog (save with optional name, list, restore with confirm, "Version restored" toast), restore-forward in one undoable transaction, 4 restore tests – 18 unit tests total.

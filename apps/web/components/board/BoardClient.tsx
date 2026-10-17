@@ -136,6 +136,9 @@ function BoardLayout({
         status={status}
         saving={session ? saving : undefined}
         awareness={session?.provider.awareness ?? undefined}
+        history={
+          session && { doc: session.doc, undoManager: session.undoManager }
+        }
       />
       {status === "offline" && (
         <div className="shrink-0 border-b border-yellow-200 bg-yellow-50 px-4 py-1.5 text-center text-sm text-yellow-900">

@@ -199,3 +199,13 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **Why it never undoes other people:** Remote updates are applied with the provider as their origin, not `LOCAL_ORIGIN`, so the manager never records them. Undo and redo run as ordinary transactions and sync to everyone like any other edit.
 
 **Verified:** a real mouse drag undoes in one step and redoes; recoloring three shapes undoes in one step; when Alice adds a shape and recolors Carol's new rectangle, Carol's undo removes only her rectangle, Alice's shape stays, and both boards end up identical. Covered by `lib/yjs/undo.test.ts` (5 tests).
+
+---
+
+## 2026-10-17 – Version history: restore by moving forward (Phase 9)
+
+**What:** "Save version" sends `Y.encodeStateAsUpdate(doc)` (base64) from the client's _synced_ doc to the `saveVersion` server action. The action checks the role (owner/editor), checks the bytes are a valid Yjs update and at most 4 MB, stores a `BoardVersion`, and keeps the newest 50. Next's server-action body limit is raised to 5 MB for this. "Restore" loads the version into a temporary Y.Doc, computes the difference with the live doc (delete extra shapes, recreate missing ones, set changed properties, replace `order` if different), and applies it in **one** `LOCAL_ORIGIN` transaction, bracketed so it's exactly one undo step.
+
+**Why overwriting the database doesn't work with a CRDT:** If we replaced `Board.state` with the old bytes, every connected (or offline) client still holds the newer document. On their next sync, Yjs would see those newer updates as "missing" on the server and send them back. The CRDT merges by _adding_ history, never by forgetting it, so the board would immediately turn back into the current state. Even unloading the room on the server doesn't help, because the clients reintroduce the history. Restoring as a new forward edit is the only way that sticks. As a bonus, it syncs to everyone like any other edit and one undo reverts it.
+
+**Verified:** saved "Before cleanup", deleted everything and drew new shapes (watched by a second connected editor), restored. Both windows matched the saved version exactly and stayed that way, and one Ctrl+Z brought back the pre-restore board in both windows. `lib/yjs/restore.test.ts` covers deleted, added and changed shapes, one-undo revert, syncing, and "a client with the old state syncing back doesn't undo the restore".

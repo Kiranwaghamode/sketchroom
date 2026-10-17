@@ -4,6 +4,7 @@ import { ArrowLeftIcon, HistoryIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import type * as Y from "yjs";
 import { renameBoard } from "@/app/actions/boards";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import type { ConnectionStatus } from "@/lib/yjs/hooks";
 import { cn } from "@/lib/utils";
 import type { Awareness } from "@/lib/presence";
 import { Avatars } from "./Avatars";
+import { HistoryDialog } from "./HistoryDialog";
 import { ShareDialog } from "./ShareDialog";
 
 const STATUS: Record<ConnectionStatus, { label: string; className: string }> = {
@@ -32,6 +34,8 @@ type Props = {
   /** Undefined until the board has loaded. */
   saving?: boolean;
   awareness?: Awareness;
+  /** Available once the board has loaded. */
+  history?: { doc: Y.Doc; undoManager?: Y.UndoManager };
 };
 
 export function TopBar({
@@ -42,6 +46,7 @@ export function TopBar({
   status,
   saving,
   awareness,
+  history,
 }: Props) {
   const [title, setTitle] = useState(initialTitle);
   const [editing, setEditing] = useState(false);
@@ -143,11 +148,20 @@ export function TopBar({
       <div className="ml-auto flex items-center gap-2">
         {awareness && <Avatars awareness={awareness} />}
         <ShareDialog boardId={boardId} isOwner={isOwner} />
-        {/* History: Phase 9 */}
-        <Button variant="ghost" size="sm" disabled>
-          <HistoryIcon />
-          History
-        </Button>
+        {history ? (
+          <HistoryDialog
+            boardId={boardId}
+            doc={history.doc}
+            undoManager={history.undoManager}
+            canEdit={!readOnly}
+            synced={status === "connected"}
+          />
+        ) : (
+          <Button variant="ghost" size="sm" disabled>
+            <HistoryIcon />
+            History
+          </Button>
+        )}
       </div>
     </header>
   );
