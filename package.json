@@ -10,7 +10,8 @@
     "test": "pnpm -r --if-present test",
     "format": "prettier --write .",
     "db:migrate": "pnpm --filter @whiteboard/db migrate",
-    "db:studio": "pnpm --filter @whiteboard/db studio"
+    "db:studio": "pnpm --filter @whiteboard/db studio",
+    "db:seed": "pnpm --filter @whiteboard/web seed"
   },
   "devDependencies": {
     "@eslint/js": "^9",

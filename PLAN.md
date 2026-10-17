@@ -36,14 +36,14 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 0 done. Next: Phase 1 (Auth and dashboard).
+**Current status:** Phase 1 done. Next: Phase 2 (Canvas).
 
-**Overall progress:** 1 / 11 phases complete (9%)
+**Overall progress:** 2 / 11 phases complete (18%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
 | 0 | Project setup | ✅ Done | 2026-10-17 |
-| 1 | Auth and dashboard | ⬜ Not started | — |
+| 1 | Auth and dashboard | ✅ Done | 2026-10-17 |
 | 2 | Canvas (single user, data in Yjs) | ⬜ Not started | — |
 | 3 | Real-time sync server | ⬜ Not started | — |
 | 4 | Save boards to Postgres | ⬜ Not started | — |
@@ -363,26 +363,26 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** users can sign up, log in, and manage a list of their boards. Keep this phase small and simple.
 
 **Tasks**
-- [ ] 1.1 Configure **better-auth** with the Prisma adapter and **email + password only**. Add the route handler at `app/api/auth/[...all]/route.ts`, plus `lib/auth.ts` and `lib/auth-client.ts`.
-- [ ] 1.2 **Sign up page** (`/signup`): name, email, password. **Log in page** (`/login`): email, password. Each is a single centered card. Show errors inline. After success, go to `/dashboard`.
-- [ ] 1.3 `middleware.ts`: redirect logged-out users from `/dashboard`, `/board/*` and `/join/*` to `/login?next=...`. Redirect logged-in users from `/login` and `/signup` to `/dashboard`. `/` redirects to `/dashboard`.
-- [ ] 1.4 `lib/access.ts`: `getBoardRole(userId, boardId)` returns `'OWNER' | 'EDITOR' | 'VIEWER' | null`. It checks `Board.ownerId` first, then `BoardMember`.
-- [ ] 1.5 **Dashboard** (`/dashboard`):
+- [x] 1.1 Configure **better-auth** with the Prisma adapter and **email + password only**. Add the route handler at `app/api/auth/[...all]/route.ts`, plus `lib/auth.ts` and `lib/auth-client.ts`.
+- [x] 1.2 **Sign up page** (`/signup`): name, email, password. **Log in page** (`/login`): email, password. Each is a single centered card. Show errors inline. After success, go to `/dashboard`.
+- [x] 1.3 `middleware.ts`: redirect logged-out users from `/dashboard`, `/board/*` and `/join/*` to `/login?next=...`. Redirect logged-in users from `/login` and `/signup` to `/dashboard`. `/` redirects to `/dashboard`.
+- [x] 1.4 `lib/access.ts`: `getBoardRole(userId, boardId)` returns `'OWNER' | 'EDITOR' | 'VIEWER' | null`. It checks `Board.ownerId` first, then `BoardMember`.
+- [x] 1.5 **Dashboard** (`/dashboard`):
   - Header: app name on the left, user menu (name, Log out) on the right.
   - **New board** button: creates a board with the server action `createBoard()` and navigates to it.
   - Grid of board cards: title, "Edited <relative time>", and a role badge if the user isn't the owner ("Can edit" / "Can view").
   - Each card owned by the user has a `⋯` menu: **Rename** (dialog with an input) and **Delete** (confirm dialog). Non-owners get **Leave board**, which removes their membership.
   - Show boards the user owns **and** boards shared with them, sorted by `updatedAt` descending.
   - Empty state: "No boards yet" + **New board** button.
-- [ ] 1.6 Server actions `createBoard`, `renameBoard`, `deleteBoard`, `leaveBoard`. Validate inputs with zod (title 1–80 chars). Check permissions on the server: only the owner can rename or delete.
-- [ ] 1.7 `/board/[id]` page (server component): check access with `getBoardRole`. If there's no access, show `notFound()`. For now it just renders the board title and "Canvas coming soon".
-- [ ] 1.8 Seed script: a demo user (`demo@whiteboard.dev` / password from `.env`) with one board.
+- [x] 1.6 Server actions `createBoard`, `renameBoard`, `deleteBoard`, `leaveBoard`. Validate inputs with zod (title 1–80 chars). Check permissions on the server: only the owner can rename or delete.
+- [x] 1.7 `/board/[id]` page (server component): check access with `getBoardRole`. If there's no access, show `notFound()`. For now it just renders the board title and "Canvas coming soon".
+- [x] 1.8 Seed script: a demo user (`demo@whiteboard.dev` / password from `.env`) with one board.
 
 **Done when**
-- [ ] I can sign up, log out and log in again.
-- [ ] I can create, rename and delete a board from the dashboard.
-- [ ] A second user gets a 404 on my board's URL.
-- [ ] Logged-out users are redirected to the login page.
+- [x] I can sign up, log out and log in again.
+- [x] I can create, rename and delete a board from the dashboard.
+- [x] A second user gets a 404 on my board's URL.
+- [x] Logged-out users are redirected to the login page.
 
 ---
 
@@ -642,3 +642,4 @@ Check these at the very end, on the deployed app:
 > Format: `YYYY-MM-DD – Phase N complete – short summary – notes or known issues`
 
 - 2026-10-17 – Phase 0 complete – pnpm monorepo (web: Next.js 16 + shadcn, sync: tsx stub, db: Prisma 7 + Better Auth tables, shared: zod shapes), Neon dev DB migrated, CI for typecheck + lint – shared packages ship TS source; sync production build is handled in Phase 3.
+- 2026-10-17 – Phase 1 complete – better-auth email/password, login + signup, proxy.ts redirects, dashboard (create/rename/delete/leave, role badges, empty state), board page with access check (real 404), seed script – Next 16 uses proxy.ts instead of middleware.ts; demo password is in apps/web/.env (DEMO_PASSWORD).
