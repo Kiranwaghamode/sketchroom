@@ -22,6 +22,7 @@ import {
   updateShapes,
 } from "@/lib/yjs/mutations";
 import { getOrder, getShapes } from "@/lib/yjs/schema";
+import { beginGesture, endGesture } from "@/lib/yjs/undo";
 import {
   MAX_ZOOM,
   MIN_ZOOM,
@@ -105,6 +106,8 @@ type Props = {
   userId: string;
   readOnly?: boolean;
   awareness?: Awareness;
+  /** My undo history (not for viewers). */
+  undoManager?: Y.UndoManager;
 };
 
 export default function Canvas({
@@ -112,6 +115,7 @@ export default function Canvas({
   userId,
   readOnly = false,
   awareness,
+  undoManager,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
@@ -230,6 +234,12 @@ export default function Canvas({
         return;
       }
       if (readOnly) return;
+      if (mod && (key === "z" || key === "y")) {
+        e.preventDefault();
+        if (key === "y" || e.shiftKey) undoManager?.redo();
+        else undoManager?.undo();
+        return; // selected ids that no longer exist are dropped by the effect below
+      }
       if (mod && key === "a") {
         e.preventDefault();
         setTool("select");
@@ -271,7 +281,7 @@ export default function Canvas({
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);
     };
-  }, [doc, readOnly]);
+  }, [doc, readOnly, undoManager]);
 
   // ---- Keep the Transformer attached to the selected shapes ----------------
   useEffect(() => {
@@ -354,6 +364,7 @@ export default function Canvas({
           const shape = readShape(doc, id);
           if (shape) origins.set(id, { x: shape.x, y: shape.y });
         }
+        beginGesture(undoManager); // the whole drag is one undo step
         gestureRef.current = {
           kind: "move",
           startScreen: screen,
@@ -521,6 +532,7 @@ export default function Canvas({
           // A click (no drag) on a shape inside a multi-selection selects just that shape.
           setSelection([gesture.clickedId]);
         }
+        endGesture(undoManager);
         break;
       }
       case "create": {
@@ -612,6 +624,7 @@ export default function Canvas({
       ];
     });
     updateShapes(doc, updates);
+    endGesture(undoManager);
   }
 
   // ---- Render -------------------------------------------------------------------
@@ -707,6 +720,7 @@ export default function Canvas({
                 ? oldBox
                 : newBox
             }
+            onTransformStart={() => beginGesture(undoManager)}
             onTransformEnd={onTransformEnd}
           />
         </Layer>

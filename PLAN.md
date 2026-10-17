@@ -36,9 +36,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 7 done. Next: Phase 8 (Undo and redo).
+**Current status:** Phase 8 done. Next: Phase 9 (Version history).
 
-**Overall progress:** 8 / 11 phases complete (73%)
+**Overall progress:** 9 / 11 phases complete (82%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
@@ -50,7 +50,7 @@
 | 5 | Permissions and share links | ✅ Done | 2026-10-17 |
 | 6 | Live cursors and who's online | ✅ Done | 2026-10-17 |
 | 7 | Offline support | ✅ Done | 2026-10-17 |
-| 8 | Undo and redo | ⬜ Not started | — |
+| 8 | Undo and redo | ✅ Done | 2026-10-17 |
 | 9 | Version history (save and restore) | ⬜ Not started | — |
 | 10 | Tests, deploy and README | ⬜ Not started | — |
 
@@ -541,17 +541,17 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** Ctrl/⌘+Z undoes **only your own** changes.
 
 **Tasks**
-- [ ] 8.1 Create one `Y.UndoManager([shapes, order], { trackedOrigins: new Set([LOCAL_ORIGIN]), captureTimeout: 500 })` per board session.
-- [ ] 8.2 Make sure **every** local edit goes through `mutations.ts` with `LOCAL_ORIGIN`. Remote updates and restores must not have this origin.
-- [ ] 8.3 A whole drag or resize must undo in **one** step. Call `undoManager.stopCapturing()` at the start of each new drag, and make the throttled drag writes merge within `captureTimeout`.
-- [ ] 8.4 Add Undo and Redo buttons to the toolbar (disabled when there's nothing to undo or redo, using the manager's stack events) and shortcuts: Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, Ctrl/⌘+Y.
-- [ ] 8.5 After undo or redo, clear selected ids that no longer exist.
-- [ ] 8.6 Viewers: no undo manager, no buttons.
+- [x] 8.1 Create one `Y.UndoManager([shapes, order], { trackedOrigins: new Set([LOCAL_ORIGIN]), captureTimeout: 500 })` per board session.
+- [x] 8.2 Make sure **every** local edit goes through `mutations.ts` with `LOCAL_ORIGIN`. Remote updates and restores must not have this origin.
+- [x] 8.3 A whole drag or resize must undo in **one** step. Call `undoManager.stopCapturing()` at the start of each new drag, and make the throttled drag writes merge within `captureTimeout`.
+- [x] 8.4 Add Undo and Redo buttons to the toolbar (disabled when there's nothing to undo or redo, using the manager's stack events) and shortcuts: Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, Ctrl/⌘+Y.
+- [x] 8.5 After undo or redo, clear selected ids that no longer exist.
+- [x] 8.6 Viewers: no undo manager, no buttons.
 
 **Done when**
-- [ ] When Alice presses undo, it never removes or changes Bob's shapes.
-- [ ] One drag = one undo step. One color change on 3 selected shapes = one undo step.
-- [ ] Undo and redo sync to the other window like normal edits.
+- [x] When Alice presses undo, it never removes or changes Bob's shapes.
+- [x] One drag = one undo step. One color change on 3 selected shapes = one undo step.
+- [x] Undo and redo sync to the other window like normal edits.
 
 ---
 
@@ -649,3 +649,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-17 – Phase 5 complete – /api/ws-token (jose, 5 min), async provider token, sync auth extension (origin, JWT, board match, read-only viewers), share dialog + reset, /join/[token], viewer UI – verified a viewer's forged writes never reach others or Postgres; "private window" check done with a second user session via curl.
 - 2026-10-17 – Phase 6 complete – awareness user + throttled world-space cursor, Cursors overlay with rAF lerp, Avatars (max 5, +N, "(you)"), beforeunload cleanup – the second "window" was a second authenticated connection in the same page (two signed-in users in one Chrome profile isn't possible); cursor animation verified with a timer-based rAF because the automated Chrome window wasn't painting.
 - 2026-10-17 – Phase 7 complete – y-indexeddb per board, load from IndexedDB or server (first wins), offline banner + "Back online" toast, browser online/offline → disconnect/reconnect, clear local copies on logout – a refresh with the browser itself offline needs a service worker (out of scope); refresh with the sync server unreachable works. Dev token fetch is slow (~4 s) because Neon is in us-east-2.
+- 2026-10-17 – Phase 8 complete – Y.UndoManager (LOCAL_ORIGIN only, 500 ms), begin/endGesture so a drag or resize is always one step even with pauses, Undo/Redo buttons with stack state, Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, Ctrl/⌘+Y, none for viewers, 5 new tests – 14 unit tests total.

@@ -12,6 +12,7 @@ import { userColor } from "@/lib/presence";
 import { useConnectionStatus } from "@/lib/yjs/hooks";
 import { connectBoard } from "@/lib/yjs/provider";
 import { createBoardDoc } from "@/lib/yjs/schema";
+import { createUndoManager } from "@/lib/yjs/undo";
 import { useEditor } from "@/stores/editor";
 import { SelectionPanel } from "./SelectionPanel";
 import { Toolbar } from "./Toolbar";
@@ -34,10 +35,12 @@ type Session = {
   doc: Y.Doc;
   provider: HocuspocusProvider;
   local: IndexeddbPersistence;
+  /** Only for owners and editors. */
+  undoManager?: Y.UndoManager;
 };
 
 export function BoardClient(props: Props) {
-  const { boardId, userId, userName } = props;
+  const { boardId, userId, userName, role } = props;
   const [session, setSession] = useState<Session | null>(null);
 
   // One Y.Doc + provider per board, created in an effect and destroyed on unmount.
@@ -46,10 +49,12 @@ export function BoardClient(props: Props) {
   useEffect(() => {
     const { doc } = createBoardDoc();
     const { provider, local, cleanup } = connectBoard(boardId, doc);
+    // One undo manager per board session; viewers can't edit, so they get none.
+    const undoManager = role === "VIEWER" ? undefined : createUndoManager(doc);
     // The connection is an external resource created here, so its handle has to be
     // stored from the effect; creating it during render would leak sockets.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSession({ doc, provider, local });
+    setSession({ doc, provider, local, undoManager });
 
     // Presence: who I am (for avatars and my cursor label on other screens).
     const awareness = provider.awareness;
@@ -72,10 +77,11 @@ export function BoardClient(props: Props) {
     }
     return () => {
       window.removeEventListener("beforeunload", leave);
+      undoManager?.destroy();
       cleanup();
       doc.destroy();
     };
-  }, [boardId, userId, userName]);
+  }, [boardId, userId, userName, role]);
 
   if (!session) return <BoardLayout {...props} status="connecting" />;
   return <ConnectedBoard {...props} session={session} />;
@@ -145,6 +151,7 @@ function BoardLayout({
               userId={userId}
               readOnly={role === "VIEWER"}
               awareness={session.provider.awareness ?? undefined}
+              undoManager={session.undoManager}
             />
             {session.provider.awareness && (
               <Cursors awareness={session.provider.awareness} />
@@ -152,7 +159,9 @@ function BoardLayout({
             {role !== "VIEWER" && (
               <>
                 <SelectionPanel doc={session.doc} />
-                <Toolbar />
+                {session.undoManager && (
+                  <Toolbar undoManager={session.undoManager} />
+                )}
               </>
             )}
           </>

@@ -187,3 +187,15 @@ After installing packages while `next dev` was stopped, the restarted dev server
 
 - The provider also listens to the browser's `offline`/`online` events and disconnects/reconnects immediately. An open WebSocket can otherwise linger for a while after the network drops.
 - A full page _refresh_ with the browser itself offline (DevTools → Offline) can't load the page at all without a service worker, which is out of scope (no PWA). What works is refreshing while the **sync server** is unreachable: the page loads from the web server and the board loads from IndexedDB.
+
+---
+
+## 2026-10-17 – Undo and redo (Phase 8)
+
+**What:** One `Y.UndoManager` per board session (owners and editors only), scoped to `shapes` and `order`, tracking only `LOCAL_ORIGIN` with a 500 ms capture window. `beginGesture`/`endGesture` (in `lib/yjs/undo.ts`) bracket every drag and resize. They call `stopCapturing()` and lift the capture timeout for the duration of the gesture.
+
+**Why the gesture helpers:** PLAN task 8.3 suggests relying on the 500 ms window to merge a drag's throttled writes. But a drag only writes while the pointer moves, so a user who pauses for more than half a second mid-drag would get _two_ undo steps. Lifting the timeout until the gesture ends guarantees one step for the whole drag, however long it takes. `stopCapturing()` at both ends keeps it from merging with the edit before or after.
+
+**Why it never undoes other people:** Remote updates are applied with the provider as their origin, not `LOCAL_ORIGIN`, so the manager never records them. Undo and redo run as ordinary transactions and sync to everyone like any other edit.
+
+**Verified:** a real mouse drag undoes in one step and redoes; recoloring three shapes undoes in one step; when Alice adds a shape and recolors Carol's new rectangle, Carol's undo removes only her rectangle, Alice's shape stays, and both boards end up identical. Covered by `lib/yjs/undo.test.ts` (5 tests).

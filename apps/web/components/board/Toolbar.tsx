@@ -4,15 +4,19 @@ import {
   CircleIcon,
   MousePointer2Icon,
   PencilIcon,
+  Redo2Icon,
   SquareIcon,
   TypeIcon,
+  Undo2Icon,
 } from "lucide-react";
+import type * as Y from "yjs";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useUndoState } from "@/lib/yjs/undo";
 import { useEditor, type Tool } from "@/stores/editor";
 
 const TOOLS: {
@@ -28,7 +32,7 @@ const TOOLS: {
   { tool: "pen", label: "Pen", shortcut: "P", icon: PencilIcon },
 ];
 
-export function Toolbar() {
+export function Toolbar({ undoManager }: { undoManager: Y.UndoManager }) {
   const current = useEditor((s) => s.tool);
   const setTool = useEditor((s) => s.setTool);
   const setSelection = useEditor((s) => s.setSelection);
@@ -58,6 +62,49 @@ export function Toolbar() {
           </TooltipContent>
         </Tooltip>
       ))}
+      <div className="mx-1 h-6 w-px bg-border" />
+      <UndoRedo undoManager={undoManager} />
     </div>
   );
+}
+
+function UndoRedo({ undoManager }: { undoManager: Y.UndoManager }) {
+  const { canUndo, canRedo } = useUndoState(undoManager);
+  // The toolbar only renders in the browser, so reading navigator here is safe.
+  const mod = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl+";
+  const buttons = [
+    {
+      label: "Undo",
+      shortcut: `${mod}Z`,
+      icon: Undo2Icon,
+      enabled: canUndo,
+      run: () => undoManager.undo(),
+    },
+    {
+      label: "Redo",
+      shortcut: `${mod}Shift+Z`,
+      icon: Redo2Icon,
+      enabled: canRedo,
+      run: () => undoManager.redo(),
+    },
+  ];
+  return buttons.map(({ label, shortcut, icon: Icon, enabled, run }) => (
+    <Tooltip key={label}>
+      {/* A disabled button gets no hover events, so the span is the trigger. */}
+      <TooltipTrigger render={<span tabIndex={-1} />}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={label}
+          disabled={!enabled}
+          onClick={run}
+        >
+          <Icon />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        {label} <span className="ml-1 opacity-60">{shortcut}</span>
+      </TooltipContent>
+    </Tooltip>
+  ));
 }
