@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/tooltip";
 import type { ConnectionStatus } from "@/lib/yjs/hooks";
 import { cn } from "@/lib/utils";
+import type { Awareness } from "@/lib/presence";
+import { Avatars } from "./Avatars";
 import { ShareDialog } from "./ShareDialog";
 
 const STATUS: Record<ConnectionStatus, { label: string; className: string }> = {
@@ -29,6 +31,7 @@ type Props = {
   status: ConnectionStatus;
   /** Undefined until the board has loaded. */
   saving?: boolean;
+  awareness?: Awareness;
 };
 
 export function TopBar({
@@ -38,6 +41,7 @@ export function TopBar({
   readOnly,
   status,
   saving,
+  awareness,
 }: Props) {
   const [title, setTitle] = useState(initialTitle);
   const [editing, setEditing] = useState(false);
@@ -137,7 +141,7 @@ export function TopBar({
       )}
 
       <div className="ml-auto flex items-center gap-2">
-        {/* Online user avatars: Phase 6 */}
+        {awareness && <Avatars awareness={awareness} />}
         <ShareDialog boardId={boardId} isOwner={isOwner} />
         {/* History: Phase 9 */}
         <Button variant="ghost" size="sm" disabled>

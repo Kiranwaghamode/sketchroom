@@ -158,3 +158,17 @@ Short records of non-obvious technical choices: what, why, and the alternatives 
 ## 2026-10-17 – Dev server reload loop (troubleshooting note)
 
 After installing packages while `next dev` was stopped, the restarted dev server put every open page into a reload loop (a recompile and full reload every ~2.5 s, with the board never finishing loading). The fix was deleting `apps/web/.next` (Turbopack's persistent dev cache) and restarting. If the app ever keeps reloading in development, do that first.
+
+---
+
+## 2026-10-17 – Live cursors and presence (Phase 6)
+
+**What:**
+
+- Awareness carries `user: { id, name, color }` and `cursor: { x, y } | null` (world coordinates). The color is picked from a fixed list by a hash of the user id, so it's stable across sessions.
+- Cursor updates are throttled to one per 50 ms with a trailing send, so the last position always goes out.
+- `Cursors` renders one element per remote cursor. React only re-renders when cursors appear or disappear. Movement is done in a single `requestAnimationFrame` loop that eases each cursor toward its target in **world** space, then converts to screen space with this window's camera. That's why cursors stay aligned when two windows have different zoom and pan.
+- Avatars show one circle per _user_ (several tabs of the same user count once), you first.
+- `beforeunload` clears local awareness so closing a tab removes you right away. Hocuspocus's awareness timeout handles crashed clients.
+
+**Verified:** a remote cursor lands exactly on its world point at 100% and at 250% zoom with a different pan, glides between positions, and disappears with its avatar about 70 ms after the other client leaves. Nothing presence-related appears in `doc.toJSON()` or in `Board.state`.

@@ -36,9 +36,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 5 done. Next: Phase 6 (Live cursors and who's online).
+**Current status:** Phase 6 done. Next: Phase 7 (Offline support).
 
-**Overall progress:** 6 / 11 phases complete (55%)
+**Overall progress:** 7 / 11 phases complete (64%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
@@ -48,7 +48,7 @@
 | 3 | Real-time sync server | ✅ Done | 2026-10-17 |
 | 4 | Save boards to Postgres | ✅ Done | 2026-10-17 |
 | 5 | Permissions and share links | ✅ Done | 2026-10-17 |
-| 6 | Live cursors and who's online | ⬜ Not started | — |
+| 6 | Live cursors and who's online | ✅ Done | 2026-10-17 |
 | 7 | Offline support | ⬜ Not started | — |
 | 8 | Undo and redo | ⬜ Not started | — |
 | 9 | Version history (save and restore) | ⬜ Not started | — |
@@ -504,17 +504,17 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** you can see who's on the board and where their cursor is.
 
 **Tasks**
-- [ ] 6.1 When the board loads, set the local awareness state: `provider.awareness.setLocalStateField('user', { id, name, color })`. Pick `color` from a fixed list based on a hash of the user id, so it's stable for each user.
-- [ ] 6.2 On pointer move over the canvas, set `awareness.setLocalStateField('cursor', { x, y })` in **world coordinates**, throttled to about 50 ms. On pointer leave, set `cursor` to `null`.
-- [ ] 6.3 `components/canvas/Cursors.tsx`: listen to awareness `change`. For every other client with a cursor, draw an arrow in their color with a name label. Convert world → screen with the current camera. Move each cursor smoothly toward its latest position with `requestAnimationFrame` (simple lerp).
-- [ ] 6.4 `components/board/Avatars.tsx` in the top bar: one circle per unique online user (initials + their color, tooltip with the name), at most 5, then "+N". Include yourself, marked "(you)" in the tooltip.
-- [ ] 6.5 Make sure a closed tab disappears quickly. Set the awareness state to null on `beforeunload`. Awareness timeout handles crashed clients.
+- [x] 6.1 When the board loads, set the local awareness state: `provider.awareness.setLocalStateField('user', { id, name, color })`. Pick `color` from a fixed list based on a hash of the user id, so it's stable for each user.
+- [x] 6.2 On pointer move over the canvas, set `awareness.setLocalStateField('cursor', { x, y })` in **world coordinates**, throttled to about 50 ms. On pointer leave, set `cursor` to `null`.
+- [x] 6.3 `components/canvas/Cursors.tsx`: listen to awareness `change`. For every other client with a cursor, draw an arrow in their color with a name label. Convert world → screen with the current camera. Move each cursor smoothly toward its latest position with `requestAnimationFrame` (simple lerp).
+- [x] 6.4 `components/board/Avatars.tsx` in the top bar: one circle per unique online user (initials + their color, tooltip with the name), at most 5, then "+N". Include yourself, marked "(you)" in the tooltip.
+- [x] 6.5 Make sure a closed tab disappears quickly. Set the awareness state to null on `beforeunload`. Awareness timeout handles crashed clients.
 
 **Done when**
-- [ ] With two windows open, each shows the other's cursor with a name, moving smoothly.
-- [ ] Cursors line up correctly when the two windows have different zoom and pan.
-- [ ] Closing a tab removes its avatar and cursor within a few seconds.
-- [ ] Nothing about cursors appears in `doc.toJSON()` or in the database.
+- [x] With two windows open, each shows the other's cursor with a name, moving smoothly.
+- [x] Cursors line up correctly when the two windows have different zoom and pan.
+- [x] Closing a tab removes its avatar and cursor within a few seconds.
+- [x] Nothing about cursors appears in `doc.toJSON()` or in the database.
 
 ---
 
@@ -647,3 +647,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-17 – Phase 3 complete – Hocuspocus 4.7 sync server + Logger, connectBoard provider, Strict-Mode-safe BoardClient, connection status dot, loading state, TopBar (rename, status, Share/History placeholders), Dockerfile – edits arrive in ~4 ms; Docker image build not tested (Docker Desktop not running); image runs `node src/index.ts` (Node 24 type stripping) instead of dist/index.js, see decisions.md.
 - 2026-10-17 – Phase 4 complete – Database extension (fetch/store Board.state), debounce 2 s / max 10 s, save on last disconnect, unknown boards logged, Saved/Saving… label – 400 drag writes → 2 DB saves; connections to unknown boards are only logged until Phase 5 rejects them.
 - 2026-10-17 – Phase 5 complete – /api/ws-token (jose, 5 min), async provider token, sync auth extension (origin, JWT, board match, read-only viewers), share dialog + reset, /join/[token], viewer UI – verified a viewer's forged writes never reach others or Postgres; "private window" check done with a second user session via curl.
+- 2026-10-17 – Phase 6 complete – awareness user + throttled world-space cursor, Cursors overlay with rAF lerp, Avatars (max 5, +N, "(you)"), beforeunload cleanup – the second "window" was a second authenticated connection in the same page (two signed-in users in one Chrome profile isn't possible); cursor animation verified with a timer-based rAF because the automated Chrome window wasn't painting.

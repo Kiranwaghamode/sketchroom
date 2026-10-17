@@ -24,6 +24,7 @@ export default async function BoardPage({ params }: PageProps<"/board/[id]">) {
     <BoardClient
       boardId={id}
       userId={user.id}
+      userName={user.name}
       title={board.title}
       role={role}
     />

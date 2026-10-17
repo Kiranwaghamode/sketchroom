@@ -13,6 +13,7 @@ import {
   type Box,
   type Point,
 } from "@/lib/geometry";
+import type { Awareness } from "@/lib/presence";
 import { useShapeIds } from "@/lib/yjs/hooks";
 import {
   createShape,
@@ -39,6 +40,7 @@ const DEFAULT_BOX = { width: 120, height: 80 };
 const DEFAULT_TEXT_WIDTH = 240;
 const CLICK_DISTANCE = 4; // screen px: below this, a drag counts as a click
 const MOVE_WRITE_INTERVAL = 30; // ms between Y.Doc writes while dragging
+const CURSOR_INTERVAL = 50; // ms between cursor (awareness) updates
 const ACCENT = "#1971c2";
 
 type Gesture =
@@ -94,15 +96,37 @@ function zoomAt(camera: Camera, screen: Point, zoom: number): Camera {
   };
 }
 
-/** `readOnly` (viewers): pan and zoom only. The sync server enforces it too. */
-type Props = { doc: Y.Doc; userId: string; readOnly?: boolean };
+/**
+ * `readOnly` (viewers): pan and zoom only. The sync server enforces it too.
+ * `awareness`: where this user's cursor is published for others.
+ */
+type Props = {
+  doc: Y.Doc;
+  userId: string;
+  readOnly?: boolean;
+  awareness?: Awareness;
+};
 
-export default function Canvas({ doc, userId, readOnly = false }: Props) {
+export default function Canvas({
+  doc,
+  userId,
+  readOnly = false,
+  awareness,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const gestureRef = useRef<Gesture | null>(null);
   const spaceRef = useRef(false);
+  const cursorRef = useRef<{
+    lastSent: number;
+    timer: number | null;
+    latest: Point | null;
+  }>({
+    lastSent: 0,
+    timer: null,
+    latest: null,
+  });
 
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -380,12 +404,37 @@ export default function Canvas({ doc, userId, readOnly = false }: Props) {
     e.currentTarget.setPointerCapture(e.pointerId);
   }
 
+  /** Publishes my cursor (world coordinates) at most every 50 ms, plus a trailing update. */
+  function publishCursor(world: Point | null) {
+    if (!awareness) return;
+    const state = cursorRef.current;
+    state.latest = world;
+    if (world === null) {
+      if (state.timer !== null) window.clearTimeout(state.timer);
+      state.timer = null;
+      awareness.setLocalStateField("cursor", null);
+      return;
+    }
+    if (state.timer !== null) return; // a send is already scheduled
+    const wait = Math.max(
+      0,
+      CURSOR_INTERVAL - (performance.now() - state.lastSent),
+    );
+    state.timer = window.setTimeout(() => {
+      state.timer = null;
+      state.lastSent = performance.now();
+      awareness.setLocalStateField("cursor", state.latest);
+    }, wait);
+  }
+
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    const gesture = gestureRef.current;
-    if (!gesture) return;
     const { camera, setCamera, setSelection } = useEditor.getState();
     const screen = toScreen(e);
     const world = screenToWorld(screen, camera);
+    publishCursor(world);
+
+    const gesture = gestureRef.current;
+    if (!gesture) return;
 
     switch (gesture.kind) {
       case "pan":
@@ -595,6 +644,7 @@ export default function Canvas({ doc, userId, readOnly = false }: Props) {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
+      onPointerLeave={() => publishCursor(null)}
       onDoubleClick={onDoubleClick}
     >
       <Stage

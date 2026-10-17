@@ -5,6 +5,8 @@ import type { Role } from "@whiteboard/db";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type * as Y from "yjs";
+import { Cursors } from "@/components/canvas/Cursors";
+import { userColor } from "@/lib/presence";
 import { useConnectionStatus } from "@/lib/yjs/hooks";
 import { connectBoard } from "@/lib/yjs/provider";
 import { createBoardDoc } from "@/lib/yjs/schema";
@@ -18,12 +20,18 @@ const Canvas = dynamic(() => import("@/components/canvas/Canvas"), {
   ssr: false,
 });
 
-type Props = { boardId: string; userId: string; title: string; role: Role };
+type Props = {
+  boardId: string;
+  userId: string;
+  userName: string;
+  title: string;
+  role: Role;
+};
 
 type Session = { doc: Y.Doc; provider: HocuspocusProvider };
 
 export function BoardClient(props: Props) {
-  const { boardId } = props;
+  const { boardId, userId, userName } = props;
   const [session, setSession] = useState<Session | null>(null);
 
   // One Y.Doc + provider per board, created in an effect and destroyed on unmount.
@@ -36,6 +44,17 @@ export function BoardClient(props: Props) {
     // stored from the effect; creating it during render would leak sockets.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSession({ doc, provider });
+
+    // Presence: who I am (for avatars and my cursor label on other screens).
+    const awareness = provider.awareness;
+    awareness?.setLocalStateField("user", {
+      id: userId,
+      name: userName,
+      color: userColor(userId),
+    });
+    // Leave presence right away when the tab closes, instead of waiting for the timeout.
+    const leave = () => awareness?.setLocalState(null);
+    window.addEventListener("beforeunload", leave);
     useEditor.setState({
       tool: "select",
       selectedIds: [],
@@ -46,10 +65,11 @@ export function BoardClient(props: Props) {
       Object.assign(window, { doc, provider, editor: useEditor });
     }
     return () => {
+      window.removeEventListener("beforeunload", leave);
       cleanup();
       doc.destroy();
     };
-  }, [boardId]);
+  }, [boardId, userId, userName]);
 
   if (!session) return <BoardLayout {...props} status="connecting" />;
   return <ConnectedBoard {...props} session={session} />;
@@ -89,6 +109,7 @@ function BoardLayout({
         readOnly={role === "VIEWER"}
         status={status}
         saving={session ? saving : undefined}
+        awareness={session?.provider.awareness ?? undefined}
       />
       <main className="relative flex-1 overflow-hidden">
         {session ? (
@@ -97,7 +118,11 @@ function BoardLayout({
               doc={session.doc}
               userId={userId}
               readOnly={role === "VIEWER"}
+              awareness={session.provider.awareness ?? undefined}
             />
+            {session.provider.awareness && (
+              <Cursors awareness={session.provider.awareness} />
+            )}
             {role !== "VIEWER" && (
               <>
                 <SelectionPanel doc={session.doc} />
