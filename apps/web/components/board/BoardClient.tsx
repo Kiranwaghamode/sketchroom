@@ -86,15 +86,24 @@ function BoardLayout({
         boardId={boardId}
         title={title}
         isOwner={role === "OWNER"}
+        readOnly={role === "VIEWER"}
         status={status}
         saving={session ? saving : undefined}
       />
       <main className="relative flex-1 overflow-hidden">
         {session ? (
           <>
-            <Canvas doc={session.doc} userId={userId} />
-            <SelectionPanel doc={session.doc} />
-            <Toolbar />
+            <Canvas
+              doc={session.doc}
+              userId={userId}
+              readOnly={role === "VIEWER"}
+            />
+            {role !== "VIEWER" && (
+              <>
+                <SelectionPanel doc={session.doc} />
+                <Toolbar />
+              </>
+            )}
           </>
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">

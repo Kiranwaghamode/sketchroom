@@ -12,7 +12,7 @@ export const persistence = new Database({
       select: { state: true },
     });
     if (!board) {
-      // Phase 5 rejects these connections in onAuthenticate. Until then, just log it.
+      // Normally unreachable: onAuthenticate only accepts tokens issued for existing boards.
       console.warn(`[persistence] Unknown board "${documentName}"`);
       return null;
     }

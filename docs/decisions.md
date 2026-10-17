@@ -136,3 +136,25 @@ Short records of non-obvious technical choices: what, why, and the alternatives 
 - The top bar's "Saving…" / "Saved" follows the provider's unsynced-changes counter. So "Saved" means the sync server has received every change, and the database write follows within the debounce window. That's what PLAN task 4.5 asks for, and it's the honest signal the client has. The client can't see the database write itself.
 
 **Verified:** 400 writes over a 17-second simulated drag produced 2 database saves (one at the 10 s max, one 2 s after the last write). Closing the last connection triggers a save within milliseconds. Board content survives a sync-server restart.
+
+---
+
+## 2026-10-17 – Permissions and share links (Phase 5)
+
+**What:**
+
+- `GET /api/ws-token?boardId=` signs a 5-minute HS256 JWT (`jose`) with `{ sub, name, boardId, role }`. The provider's `token` option is an async function, so every reconnect fetches a fresh one.
+- The sync server's `auth` extension checks the `Origin` header in `onConnect`, then verifies the JWT in `onAuthenticate`, checks `boardId === documentName`, and sets `connectionConfig.readOnly = true` for viewers. Hocuspocus 4.7 then refuses every update from that connection (verified: a viewer writing directly into its Y.Doc changed nothing for other users or in Postgres).
+- The token schema (`WsTokenSchema`) lives in `packages/shared`, so both apps agree on the claims.
+- `/join/[token]` upserts the membership on page load (never downgrading an editor, never touching the owner) and redirects to the board.
+- Viewers can pan and zoom (any drag pans) but can't select, draw, or use editing shortcuts.
+
+**Why `onConnect` and not `onUpgrade` for the Origin check:** In Hocuspocus 4.7, an error thrown from `onUpgrade` is rethrown inside an async `upgrade` event handler, an unhandled rejection that can crash the process. `onConnect` rejects the connection cleanly. The socket is briefly open, but no document data is sent before `onAuthenticate` succeeds.
+
+**Note on the join page:** joining happens on a `GET`. That's acceptable here because join links are only opened directly (never rendered as `<Link>`s that Next.js would prefetch).
+
+---
+
+## 2026-10-17 – Dev server reload loop (troubleshooting note)
+
+After installing packages while `next dev` was stopped, the restarted dev server put every open page into a reload loop (a recompile and full reload every ~2.5 s, with the board never finishing loading). The fix was deleting `apps/web/.next` (Turbopack's persistent dev cache) and restarting. If the app ever keeps reloading in development, do that first.

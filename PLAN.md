@@ -36,9 +36,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 4 done. Next: Phase 5 (Permissions and share links).
+**Current status:** Phase 5 done. Next: Phase 6 (Live cursors and who's online).
 
-**Overall progress:** 5 / 11 phases complete (45%)
+**Overall progress:** 6 / 11 phases complete (55%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
@@ -47,7 +47,7 @@
 | 2 | Canvas (single user, data in Yjs) | ✅ Done | 2026-10-17 |
 | 3 | Real-time sync server | ✅ Done | 2026-10-17 |
 | 4 | Save boards to Postgres | ✅ Done | 2026-10-17 |
-| 5 | Permissions and share links | ⬜ Not started | — |
+| 5 | Permissions and share links | ✅ Done | 2026-10-17 |
 | 6 | Live cursors and who's online | ⬜ Not started | — |
 | 7 | Offline support | ⬜ Not started | — |
 | 8 | Undo and redo | ⬜ Not started | — |
@@ -474,28 +474,28 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** only allowed users can connect to a board, viewers can't change it even with modified client code, and owners can share with a link.
 
 **Tasks**
-- [ ] 5.1 `app/api/ws-token/route.ts` (GET `?boardId=`): check the session, then `getBoardRole`. If there's no access, return 403. Otherwise sign a JWT with **jose** (HS256, `WS_JWT_SECRET`) containing `{ sub: userId, name, boardId, role }`, expiring in **5 minutes**. Return `{ token }`.
-- [ ] 5.2 Provider: pass `token` as an **async function** that fetches `/api/ws-token`, so it gets a fresh token on every reconnect.
-- [ ] 5.3 `apps/sync/src/auth.ts`, the `onAuthenticate` hook:
+- [x] 5.1 `app/api/ws-token/route.ts` (GET `?boardId=`): check the session, then `getBoardRole`. If there's no access, return 403. Otherwise sign a JWT with **jose** (HS256, `WS_JWT_SECRET`) containing `{ sub: userId, name, boardId, role }`, expiring in **5 minutes**. Return `{ token }`.
+- [x] 5.2 Provider: pass `token` as an **async function** that fetches `/api/ws-token`, so it gets a fresh token on every reconnect.
+- [x] 5.3 `apps/sync/src/auth.ts`, the `onAuthenticate` hook:
   - Verify the JWT signature and expiry. If invalid, throw (the connection is rejected).
   - Check `payload.boardId === documentName`. If it doesn't match, reject.
   - If `role === 'VIEWER'`, set the connection to **read-only** (`connection.readOnly = true` in current Hocuspocus. Check the installed version's API).
   - Return `{ user: { id, name, role } }` as the connection context.
-- [ ] 5.4 Check the `Origin` header against `ALLOWED_ORIGIN` on the sync server.
-- [ ] 5.5 **Share dialog** (Share button in the top bar, owners only):
+- [x] 5.4 Check the `Origin` header against `ALLOWED_ORIGIN` on the sync server.
+- [x] 5.5 **Share dialog** (Share button in the top bar, owners only):
   - Two rows: **"Anyone with the link can edit"** and **"Anyone with the link can view"**, each with a **Copy link** button.
   - Server action `getOrCreateShareLink(boardId, role)` creates the link the first time (token = `nanoid(21)`), then returns it. Link format: `/join/<token>`.
   - A **Reset links** button deletes both links so old links stop working (confirm dialog).
   - Show a toast "Link copied" after copying.
   - Non-owners see the Share button disabled, with the tooltip "Only the owner can share".
-- [ ] 5.6 `/join/[token]` page: logged-out users go to login first and come back here. If the token is invalid, show "This link is invalid or was reset". If valid, upsert a `BoardMember` with the link's role (never downgrade an existing EDITOR to VIEWER; the owner stays owner), then redirect to the board.
-- [ ] 5.7 **Viewer UI:** hide the toolbar and selection panel, disable dragging and shortcuts, and show a small "View only" badge in the top bar. (The server is the real protection. The UI just reflects it.)
+- [x] 5.6 `/join/[token]` page: logged-out users go to login first and come back here. If the token is invalid, show "This link is invalid or was reset". If valid, upsert a `BoardMember` with the link's role (never downgrade an existing EDITOR to VIEWER; the owner stays owner), then redirect to the board.
+- [x] 5.7 **Viewer UI:** hide the toolbar and selection panel, disable dragging and shortcuts, and show a small "View only" badge in the top bar. (The server is the real protection. The UI just reflects it.)
 
 **Done when**
-- [ ] Opening a socket with no token or a fake one is rejected (check in the sync server logs).
-- [ ] A viewer can't change the board. Even a change made manually in DevTools (`doc.getMap('shapes').set(...)`) doesn't reach other users or the database.
-- [ ] An edit link opened in a private window (as another user) gives edit access. A view link gives view-only access.
-- [ ] After **Reset links**, the old links show the invalid-link message.
+- [x] Opening a socket with no token or a fake one is rejected (check in the sync server logs).
+- [x] A viewer can't change the board. Even a change made manually in DevTools (`doc.getMap('shapes').set(...)`) doesn't reach other users or the database.
+- [x] An edit link opened in a private window (as another user) gives edit access. A view link gives view-only access.
+- [x] After **Reset links**, the old links show the invalid-link message.
 
 ---
 
@@ -646,3 +646,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-17 – Phase 2 complete – Y.Doc schema, mutations (+ updateShapes batch), hooks, zustand editor store, Konva canvas (zoom/pan, rect/ellipse/text/pen, select/marquee/move/resize), toolbar, selection panel, shortcuts, 9 vitest tests – board content is in memory only until Phase 3; Safari pinch handled via gesture events but not tested in Safari.
 - 2026-10-17 – Phase 3 complete – Hocuspocus 4.7 sync server + Logger, connectBoard provider, Strict-Mode-safe BoardClient, connection status dot, loading state, TopBar (rename, status, Share/History placeholders), Dockerfile – edits arrive in ~4 ms; Docker image build not tested (Docker Desktop not running); image runs `node src/index.ts` (Node 24 type stripping) instead of dist/index.js, see decisions.md.
 - 2026-10-17 – Phase 4 complete – Database extension (fetch/store Board.state), debounce 2 s / max 10 s, save on last disconnect, unknown boards logged, Saved/Saving… label – 400 drag writes → 2 DB saves; connections to unknown boards are only logged until Phase 5 rejects them.
+- 2026-10-17 – Phase 5 complete – /api/ws-token (jose, 5 min), async provider token, sync auth extension (origin, JWT, board match, read-only viewers), share dialog + reset, /join/[token], viewer UI – verified a viewer's forged writes never reach others or Postgres; "private window" check done with a second user session via curl.

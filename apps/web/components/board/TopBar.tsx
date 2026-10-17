@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftIcon, HistoryIcon, Share2Icon } from "lucide-react";
+import { ArrowLeftIcon, HistoryIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 import type { ConnectionStatus } from "@/lib/yjs/hooks";
 import { cn } from "@/lib/utils";
+import { ShareDialog } from "./ShareDialog";
 
 const STATUS: Record<ConnectionStatus, { label: string; className: string }> = {
   connected: { label: "Connected", className: "bg-green-500" },
@@ -24,6 +25,7 @@ type Props = {
   boardId: string;
   title: string;
   isOwner: boolean;
+  readOnly: boolean;
   status: ConnectionStatus;
   /** Undefined until the board has loaded. */
   saving?: boolean;
@@ -33,6 +35,7 @@ export function TopBar({
   boardId,
   title: initialTitle,
   isOwner,
+  readOnly,
   status,
   saving,
 }: Props) {
@@ -122,7 +125,12 @@ export function TopBar({
         </TooltipTrigger>
         <TooltipContent side="bottom">{STATUS[status].label}</TooltipContent>
       </Tooltip>
-      {status === "connected" && saving !== undefined && (
+      {readOnly && (
+        <span className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+          View only
+        </span>
+      )}
+      {status === "connected" && saving !== undefined && !readOnly && (
         <span className="text-xs text-muted-foreground">
           {saving ? "Saving…" : "Saved"}
         </span>
@@ -130,11 +138,7 @@ export function TopBar({
 
       <div className="ml-auto flex items-center gap-2">
         {/* Online user avatars: Phase 6 */}
-        {/* Share: Phase 5 */}
-        <Button variant="outline" size="sm" disabled>
-          <Share2Icon />
-          Share
-        </Button>
+        <ShareDialog boardId={boardId} isOwner={isOwner} />
         {/* History: Phase 9 */}
         <Button variant="ghost" size="sm" disabled>
           <HistoryIcon />

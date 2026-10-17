@@ -75,3 +75,12 @@ export type EllipseShape = z.infer<typeof EllipseShapeSchema>;
 export type TextShape = z.infer<typeof TextShapeSchema>;
 export type PenShape = z.infer<typeof PenShapeSchema>;
 export type Shape = z.infer<typeof ShapeSchema>;
+
+/** Claims in the short-lived JWT the web app issues for the sync server. */
+export const WsTokenSchema = z.object({
+  sub: z.string().min(1), // user id
+  name: z.string(),
+  boardId: z.string().min(1),
+  role: z.enum(["OWNER", "EDITOR", "VIEWER"]),
+});
+export type WsToken = z.infer<typeof WsTokenSchema>;

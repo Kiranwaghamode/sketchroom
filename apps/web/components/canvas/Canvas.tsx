@@ -94,9 +94,10 @@ function zoomAt(camera: Camera, screen: Point, zoom: number): Camera {
   };
 }
 
-type Props = { doc: Y.Doc; userId: string };
+/** `readOnly` (viewers): pan and zoom only. The sync server enforces it too. */
+type Props = { doc: Y.Doc; userId: string; readOnly?: boolean };
 
-export default function Canvas({ doc, userId }: Props) {
+export default function Canvas({ doc, userId, readOnly = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
@@ -204,6 +205,7 @@ export default function Canvas({ doc, userId }: Props) {
         }
         return;
       }
+      if (readOnly) return;
       if (mod && key === "a") {
         e.preventDefault();
         setTool("select");
@@ -245,7 +247,7 @@ export default function Canvas({ doc, userId }: Props) {
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);
     };
-  }, [doc]);
+  }, [doc, readOnly]);
 
   // ---- Keep the Transformer attached to the selected shapes ----------------
   useEffect(() => {
@@ -297,7 +299,8 @@ export default function Canvas({ doc, userId }: Props) {
     const screen = toScreen(e);
     const world = screenToWorld(screen, camera);
 
-    if (e.button === 1 || spaceRef.current) {
+    // Viewers can only look around, so any drag pans.
+    if (e.button === 1 || spaceRef.current || readOnly) {
       gestureRef.current = {
         kind: "pan",
         startScreen: screen,
@@ -535,7 +538,7 @@ export default function Canvas({ doc, userId }: Props) {
   }
 
   function onDoubleClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (useEditor.getState().tool !== "select") return;
+    if (readOnly || useEditor.getState().tool !== "select") return;
     const { shapeId } = hitTest(toScreen(e));
     if (shapeId && readShape(doc, shapeId)?.type === "text") {
       useEditor.getState().setSelection([shapeId]);
@@ -569,11 +572,13 @@ export default function Canvas({ doc, userId }: Props) {
     ? "grabbing"
     : spaceDown
       ? "grab"
-      : tool === "select"
-        ? "default"
-        : tool === "text"
-          ? "text"
-          : "crosshair";
+      : readOnly
+        ? "grab"
+        : tool === "select"
+          ? "default"
+          : tool === "text"
+            ? "text"
+            : "crosshair";
 
   return (
     <div
