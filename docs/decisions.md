@@ -76,3 +76,24 @@ Short records of non-obvious technical choices: what, why, and the alternatives 
 **What:** `pnpm db:seed` runs `apps/web/scripts/seed.ts`, which creates the demo user through `auth.api.signUpEmail`.
 
 **Why:** Better Auth hashes passwords in its own format. Calling its sign-up API guarantees the seeded user can log in. Seeding from `packages/db` would mean copying Better Auth's hashing into the db package.
+
+---
+
+## 2026-10-17 – Canvas structure (Phase 2)
+
+**What:**
+
+- Every shape renders as a Konva `Group` at the shape's `(x, y)`, with the actual `Rect`/`Ellipse`/`Text`/`Path` at local coordinates inside it. Moving and resizing then work identically for all types: the Transformer attaches to Groups and only `x`, `y`, `width`, `height` change.
+- Pointer input is handled on the container `<div>` with pointer capture (one small gesture state machine: pan, move, marquee, create, pen). Shapes are found with `stage.getIntersection()`. Konva's own drag system isn't used, so there's one code path for all tools.
+- While dragging, Konva nodes are moved directly every frame for smooth feedback. The Y.Doc is written at most every 30 ms (all moved shapes in one transaction), plus once on release.
+- `mutations.ts` has an extra `updateShapes(doc, updates)` next to `updateShape`, because moving or recoloring a multi-selection must be **one** transaction (and, in Phase 8, one undo step).
+
+**Why:** simplest structure that meets the plan's rules (one transaction per drag write, resize via Transformer, pen move-only) without per-type special cases.
+
+---
+
+## 2026-10-17 – Where the color picker lives when nothing is selected
+
+**What:** The selection panel (6 swatches + Delete) floats above the selection. When nothing is selected and a drawing tool (rectangle, ellipse, text, pen) is active, the same 6 swatches (without Delete) show just above the toolbar.
+
+**Why:** PLAN task 2.10 says "picking a color with nothing selected sets the color for the next shape", but the panel is only described as appearing for a selection. Showing the swatches while a drawing tool is active gives that feature a place without adding a new UI element. Picking a color for a selection also becomes the color for the next shape.

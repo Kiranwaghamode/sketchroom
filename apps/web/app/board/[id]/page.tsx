@@ -1,5 +1,5 @@
-import { prisma } from "@whiteboard/db";
 import { notFound } from "next/navigation";
+import { BoardClient } from "@/components/board/BoardClient";
 import { getBoardRole } from "@/lib/access";
 import { requireUser } from "@/lib/auth";
 
@@ -13,16 +13,5 @@ export default async function BoardPage({ params }: PageProps<"/board/[id]">) {
   const role = await getBoardRole(user.id, id);
   if (!role) notFound();
 
-  const board = await prisma.board.findUnique({
-    where: { id },
-    select: { title: true },
-  });
-  if (!board) notFound();
-
-  return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-2">
-      <h1 className="text-xl font-semibold">{board.title}</h1>
-      <p className="text-sm text-muted-foreground">Canvas coming soon</p>
-    </main>
-  );
+  return <BoardClient boardId={id} userId={user.id} />;
 }

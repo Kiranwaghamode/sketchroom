@@ -36,15 +36,15 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 1 done. Next: Phase 2 (Canvas).
+**Current status:** Phase 2 done. Next: Phase 3 (Real-time sync server).
 
-**Overall progress:** 2 / 11 phases complete (18%)
+**Overall progress:** 3 / 11 phases complete (27%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
 | 0 | Project setup | ✅ Done | 2026-10-17 |
 | 1 | Auth and dashboard | ✅ Done | 2026-10-17 |
-| 2 | Canvas (single user, data in Yjs) | ⬜ Not started | — |
+| 2 | Canvas (single user, data in Yjs) | ✅ Done | 2026-10-17 |
 | 3 | Real-time sync server | ⬜ Not started | — |
 | 4 | Save boards to Postgres | ⬜ Not started | — |
 | 5 | Permissions and share links | ⬜ Not started | — |
@@ -391,41 +391,41 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** a complete single-player whiteboard where **all shape data already lives in a Y.Doc**, so adding multiplayer in Phase 3 needs only a few lines.
 
 **Tasks**
-- [ ] 2.1 `lib/yjs/schema.ts`: `createBoardDoc()` returns `{ doc, shapes, order }` (section 6.2).
-- [ ] 2.2 `lib/yjs/mutations.ts`. Every function wraps its changes in `doc.transact(fn, LOCAL_ORIGIN)`:
+- [x] 2.1 `lib/yjs/schema.ts`: `createBoardDoc()` returns `{ doc, shapes, order }` (section 6.2).
+- [x] 2.2 `lib/yjs/mutations.ts`. Every function wraps its changes in `doc.transact(fn, LOCAL_ORIGIN)`:
   - `createShape(doc, partialShape)` → generates an id with nanoid, creates a Y.Map with one key per property, adds it to `shapes`, pushes the id to `order`. Returns the id.
   - `updateShape(doc, id, patch)` → sets only the keys in `patch`.
   - `deleteShapes(doc, ids)` → removes the ids from `shapes` and `order`.
   - `bringToFront` isn't needed. Don't build it.
-- [ ] 2.3 `lib/yjs/hooks.ts`:
+- [x] 2.3 `lib/yjs/hooks.ts`:
   - `useShapeIds(doc)` → reads the `order` array, re-renders when it changes (use `useSyncExternalStore`).
   - `useShape(doc, id)` → returns a plain object snapshot of one shape and re-renders only when **that** shape's Y.Map changes (observe that Y.Map).
   - Cache the snapshots so `useSyncExternalStore` gets the same object reference when nothing has changed.
-- [ ] 2.4 `stores/editor.ts` (zustand): `tool` (`select | rect | ellipse | text | pen`), `color`, `selectedIds`, `camera { x, y, zoom }`, and the actions for them. **This state is never put into the Y.Doc.**
-- [ ] 2.5 `components/canvas/Canvas.tsx`: a full-screen Konva `Stage` that resizes with the window. Light dot-grid background (can be CSS on the container, moved with the camera).
+- [x] 2.4 `stores/editor.ts` (zustand): `tool` (`select | rect | ellipse | text | pen`), `color`, `selectedIds`, `camera { x, y, zoom }`, and the actions for them. **This state is never put into the Y.Doc.**
+- [x] 2.5 `components/canvas/Canvas.tsx`: a full-screen Konva `Stage` that resizes with the window. Light dot-grid background (can be CSS on the container, moved with the camera).
   - **Zoom:** Ctrl/⌘ + mouse wheel, or pinch on a trackpad. Zoom toward the pointer, limited to 10%–400%.
   - **Pan:** plain mouse wheel / trackpad scroll, or hold **Space** and drag.
   - Helper `screenToWorld(point)` / `worldToScreen(point)`. All stored coordinates are **world coordinates**.
-- [ ] 2.6 `ShapeRenderer`: renders each id from `useShapeIds` with a `ShapeNode` component that uses `useShape`. Rect → `Rect`, ellipse → `Ellipse`, text → `Text`, pen → a `Path` built with **perfect-freehand** from `points`.
-- [ ] 2.7 **Drawing tools:**
+- [x] 2.6 `ShapeRenderer`: renders each id from `useShapeIds` with a `ShapeNode` component that uses `useShape`. Rect → `Rect`, ellipse → `Ellipse`, text → `Text`, pen → a `Path` built with **perfect-freehand** from `points`.
+- [x] 2.7 **Drawing tools:**
   - Rect / Ellipse: press, drag and release creates the shape (show a preview while dragging; create it in the Y.Doc on release). A plain click creates a default 120×80 shape. After creating, switch back to **Select** and select the new shape.
   - Text: click to place a text box and immediately show an HTML `textarea` over the canvas to type into. On blur or Escape, save the text with `updateShape`. Delete the shape if the text is empty. Double-click an existing text shape to edit it.
   - Pen: collect points while the pointer is down (local preview), and create one `pen` shape on release. The pen tool stays active after drawing.
-- [ ] 2.8 **Select tool:**
+- [x] 2.8 **Select tool:**
   - Click a shape to select it. Shift+click adds or removes it from the selection. Drag on empty canvas draws a selection box.
   - Drag selected shapes to move them. While dragging, **throttle** Y.Doc writes to at most one every 30 ms, and write `x` and `y` in **one** transaction. Always write the final position on release.
   - Use a Konva `Transformer` for **resize only** (turn rotation off). Write `width`/`height`/`x`/`y` on transform end. Pen shapes: move only, no resize.
   - Click on empty canvas or press Escape to clear the selection.
-- [ ] 2.9 `Toolbar` (bottom center, floating, shadcn buttons with lucide icons and tooltips): Select (V), Rectangle (R), Ellipse (O), Text (T), Pen (P). Undo and redo buttons are added in Phase 8.
-- [ ] 2.10 `SelectionPanel`: appears above the selection when shapes are selected. It has 6 color swatches (applies `color` to all selected shapes in one transaction) and a Delete button. Picking a color with nothing selected sets the color for the next shape.
-- [ ] 2.11 Keyboard shortcuts: V/R/O/T/P for tools, Delete/Backspace to delete the selection, Escape to deselect, Ctrl/⌘+A to select all. Ignore shortcuts while typing in an input or textarea.
-- [ ] 2.12 Unit tests (vitest) for `mutations.ts`: create, update and delete change the doc as expected.
+- [x] 2.9 `Toolbar` (bottom center, floating, shadcn buttons with lucide icons and tooltips): Select (V), Rectangle (R), Ellipse (O), Text (T), Pen (P). Undo and redo buttons are added in Phase 8.
+- [x] 2.10 `SelectionPanel`: appears above the selection when shapes are selected. It has 6 color swatches (applies `color` to all selected shapes in one transaction) and a Delete button. Picking a color with nothing selected sets the color for the next shape.
+- [x] 2.11 Keyboard shortcuts: V/R/O/T/P for tools, Delete/Backspace to delete the selection, Escape to deselect, Ctrl/⌘+A to select all. Ignore shortcuts while typing in an input or textarea.
+- [x] 2.12 Unit tests (vitest) for `mutations.ts`: create, update and delete change the doc as expected.
 
 **Done when**
-- [ ] I can draw rectangles, ellipses, text and pen strokes.
-- [ ] I can select, move, resize, recolor and delete shapes.
-- [ ] Pan and zoom are smooth, and drawing still lands exactly under the cursor at any zoom level.
-- [ ] Logging `doc.toJSON()` shows all shapes. Nothing about tool, selection or camera is in it.
+- [x] I can draw rectangles, ellipses, text and pen strokes.
+- [x] I can select, move, resize, recolor and delete shapes.
+- [x] Pan and zoom are smooth, and drawing still lands exactly under the cursor at any zoom level.
+- [x] Logging `doc.toJSON()` shows all shapes. Nothing about tool, selection or camera is in it.
 
 ---
 
@@ -643,3 +643,4 @@ Check these at the very end, on the deployed app:
 
 - 2026-10-17 – Phase 0 complete – pnpm monorepo (web: Next.js 16 + shadcn, sync: tsx stub, db: Prisma 7 + Better Auth tables, shared: zod shapes), Neon dev DB migrated, CI for typecheck + lint – shared packages ship TS source; sync production build is handled in Phase 3.
 - 2026-10-17 – Phase 1 complete – better-auth email/password, login + signup, proxy.ts redirects, dashboard (create/rename/delete/leave, role badges, empty state), board page with access check (real 404), seed script – Next 16 uses proxy.ts instead of middleware.ts; demo password is in apps/web/.env (DEMO_PASSWORD).
+- 2026-10-17 – Phase 2 complete – Y.Doc schema, mutations (+ updateShapes batch), hooks, zustand editor store, Konva canvas (zoom/pan, rect/ellipse/text/pen, select/marquee/move/resize), toolbar, selection panel, shortcuts, 9 vitest tests – board content is in memory only until Phase 3; Safari pinch handled via gesture events but not tested in Safari.
