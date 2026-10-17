@@ -1,0 +1,22 @@
+{
+  "name": "whiteboard",
+  "private": true,
+  "packageManager": "pnpm@9.15.2",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test",
+    "format": "prettier --write .",
+    "db:migrate": "pnpm --filter @whiteboard/db migrate",
+    "db:studio": "pnpm --filter @whiteboard/db studio"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9",
+    "eslint": "^9",
+    "prettier": "^3.9.10",
+    "typescript": "^5",
+    "typescript-eslint": "^8.71.2"
+  }
+}

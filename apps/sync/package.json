@@ -1,0 +1,21 @@
+{
+  "name": "@whiteboard/sync",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@whiteboard/db": "workspace:^",
+    "@whiteboard/shared": "workspace:^"
+  }
+}
