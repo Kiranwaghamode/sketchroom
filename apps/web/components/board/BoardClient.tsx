@@ -3,7 +3,9 @@
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { Role } from "@whiteboard/db";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import type { IndexeddbPersistence } from "y-indexeddb";
 import type * as Y from "yjs";
 import { Cursors } from "@/components/canvas/Cursors";
 import { userColor } from "@/lib/presence";
@@ -28,7 +30,11 @@ type Props = {
   role: Role;
 };
 
-type Session = { doc: Y.Doc; provider: HocuspocusProvider };
+type Session = {
+  doc: Y.Doc;
+  provider: HocuspocusProvider;
+  local: IndexeddbPersistence;
+};
 
 export function BoardClient(props: Props) {
   const { boardId, userId, userName } = props;
@@ -39,11 +45,11 @@ export function BoardClient(props: Props) {
   // the second is created, so there's never more than one live connection.
   useEffect(() => {
     const { doc } = createBoardDoc();
-    const { provider, cleanup } = connectBoard(boardId, doc);
+    const { provider, local, cleanup } = connectBoard(boardId, doc);
     // The connection is an external resource created here, so its handle has to be
     // stored from the effect; creating it during render would leak sockets.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSession({ doc, provider });
+    setSession({ doc, provider, local });
 
     // Presence: who I am (for avatars and my cursor label on other screens).
     const awareness = provider.awareness;
@@ -76,7 +82,21 @@ export function BoardClient(props: Props) {
 }
 
 function ConnectedBoard({ session, ...props }: Props & { session: Session }) {
-  const { status, loaded, saving } = useConnectionStatus(session.provider);
+  const { status, loaded, saving } = useConnectionStatus(
+    session.provider,
+    session.local,
+  );
+
+  // "Back online" once we reconnect after being offline and everything has synced.
+  const wasOffline = useRef(false);
+  useEffect(() => {
+    if (status === "offline") wasOffline.current = true;
+    else if (status === "connected" && !saving && wasOffline.current) {
+      wasOffline.current = false;
+      toast.success("Back online – changes synced");
+    }
+  }, [status, saving]);
+
   return (
     <BoardLayout
       {...props}
@@ -111,6 +131,12 @@ function BoardLayout({
         saving={session ? saving : undefined}
         awareness={session?.provider.awareness ?? undefined}
       />
+      {status === "offline" && (
+        <div className="shrink-0 border-b border-yellow-200 bg-yellow-50 px-4 py-1.5 text-center text-sm text-yellow-900">
+          You&rsquo;re offline – changes are saved on this device and will sync
+          when you&rsquo;re back online.
+        </div>
+      )}
       <main className="relative flex-1 overflow-hidden">
         {session ? (
           <>

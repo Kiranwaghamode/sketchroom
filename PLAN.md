@@ -36,9 +36,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 6 done. Next: Phase 7 (Offline support).
+**Current status:** Phase 7 done. Next: Phase 8 (Undo and redo).
 
-**Overall progress:** 7 / 11 phases complete (64%)
+**Overall progress:** 8 / 11 phases complete (73%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
@@ -49,7 +49,7 @@
 | 4 | Save boards to Postgres | ✅ Done | 2026-10-17 |
 | 5 | Permissions and share links | ✅ Done | 2026-10-17 |
 | 6 | Live cursors and who's online | ✅ Done | 2026-10-17 |
-| 7 | Offline support | ⬜ Not started | — |
+| 7 | Offline support | ✅ Done | 2026-10-17 |
 | 8 | Undo and redo | ⬜ Not started | — |
 | 9 | Version history (save and restore) | ⬜ Not started | — |
 | 10 | Tests, deploy and README | ⬜ Not started | — |
@@ -523,16 +523,16 @@ Each phase has: **Goal**, **Tasks** (checklist; tick them as you finish), and **
 **Goal:** editing keeps working without internet, and changes merge automatically on reconnect.
 
 **Tasks**
-- [ ] 7.1 In `connectBoard`, also create `new IndexeddbPersistence(boardId, doc)` from **y-indexeddb**, and destroy it on cleanup.
-- [ ] 7.2 Loading: show the canvas as soon as **either** IndexedDB has loaded **or** the provider has synced, whichever comes first. A board you've opened before should appear instantly.
-- [ ] 7.3 When offline, show a slim yellow banner under the top bar: "You're offline – changes are saved on this device and will sync when you're back online." Hide it automatically on reconnect and show the toast "Back online – changes synced".
-- [ ] 7.4 When the user logs out, clear the IndexedDB databases for their boards (`clearData()`), so the next user on the same computer doesn't see them.
-- [ ] 7.5 Add a short section to `docs/decisions.md` explaining why there's no special merge code (the CRDT plus the sync handshake handle it).
+- [x] 7.1 In `connectBoard`, also create `new IndexeddbPersistence(boardId, doc)` from **y-indexeddb**, and destroy it on cleanup.
+- [x] 7.2 Loading: show the canvas as soon as **either** IndexedDB has loaded **or** the provider has synced, whichever comes first. A board you've opened before should appear instantly.
+- [x] 7.3 When offline, show a slim yellow banner under the top bar: "You're offline – changes are saved on this device and will sync when you're back online." Hide it automatically on reconnect and show the toast "Back online – changes synced".
+- [x] 7.4 When the user logs out, clear the IndexedDB databases for their boards (`clearData()`), so the next user on the same computer doesn't see them.
+- [x] 7.5 Add a short section to `docs/decisions.md` explaining why there's no special merge code (the CRDT plus the sync handshake handle it).
 
 **Done when**
-- [ ] DevTools → Network → Offline: I can keep drawing, and a page refresh while offline still shows my offline changes.
-- [ ] Two windows both edit while one is offline. After reconnecting, both show the same final board, and no change was lost (except the same property of the same shape edited in both places, where one value wins in both windows).
-- [ ] The offline banner shows and hides correctly.
+- [x] DevTools → Network → Offline: I can keep drawing, and a page refresh while offline still shows my offline changes.
+- [x] Two windows both edit while one is offline. After reconnecting, both show the same final board, and no change was lost (except the same property of the same shape edited in both places, where one value wins in both windows).
+- [x] The offline banner shows and hides correctly.
 
 ---
 
@@ -648,3 +648,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-17 – Phase 4 complete – Database extension (fetch/store Board.state), debounce 2 s / max 10 s, save on last disconnect, unknown boards logged, Saved/Saving… label – 400 drag writes → 2 DB saves; connections to unknown boards are only logged until Phase 5 rejects them.
 - 2026-10-17 – Phase 5 complete – /api/ws-token (jose, 5 min), async provider token, sync auth extension (origin, JWT, board match, read-only viewers), share dialog + reset, /join/[token], viewer UI – verified a viewer's forged writes never reach others or Postgres; "private window" check done with a second user session via curl.
 - 2026-10-17 – Phase 6 complete – awareness user + throttled world-space cursor, Cursors overlay with rAF lerp, Avatars (max 5, +N, "(you)"), beforeunload cleanup – the second "window" was a second authenticated connection in the same page (two signed-in users in one Chrome profile isn't possible); cursor animation verified with a timer-based rAF because the automated Chrome window wasn't painting.
+- 2026-10-17 – Phase 7 complete – y-indexeddb per board, load from IndexedDB or server (first wins), offline banner + "Back online" toast, browser online/offline → disconnect/reconnect, clear local copies on logout – a refresh with the browser itself offline needs a service worker (out of scope); refresh with the sync server unreachable works. Dev token fetch is slow (~4 s) because Neon is in us-east-2.

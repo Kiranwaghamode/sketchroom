@@ -172,3 +172,18 @@ After installing packages while `next dev` was stopped, the restarted dev server
 - `beforeunload` clears local awareness so closing a tab removes you right away. Hocuspocus's awareness timeout handles crashed clients.
 
 **Verified:** a remote cursor lands exactly on its world point at 100% and at 250% zoom with a different pan, glides between positions, and disappears with its avatar about 70 ms after the other client leaves. Nothing presence-related appears in `doc.toJSON()` or in `Board.state`.
+
+---
+
+## 2026-10-17 – Offline support: no custom merge code (Phase 7)
+
+**What:** `connectBoard` attaches `y-indexeddb` (one database per board, named `whiteboard-board-<id>`) to the same Y.Doc as the sync provider. The board shows as soon as _either_ IndexedDB or the server has loaded. On logout, every database with that prefix is deleted.
+
+**Why there's no merge code:** Every edit is a Yjs update. Offline edits are applied to the local Y.Doc and saved to IndexedDB like any other. When the socket reconnects, Hocuspocus runs the normal Yjs sync handshake: each side sends its state vector, and the other replies with exactly the updates it's missing. The CRDT merges them the same way on every peer, regardless of order or duplicates. Different properties of the same shape both survive (one person's move and another's resize). Only the _same_ property edited in two places has a single winner, and it's the same winner everywhere.
+
+**Verified:** Carol (offline) added a shape, moved shape S and recolored it red, while Alice (online) added a shape, moved S vertically and recolored it green. After the sync server was stopped and Carol's page reloaded, the board loaded from IndexedDB with her edits. After reconnecting, Carol's board and the saved server state were identical: both new shapes, Carol's `x`, Alice's `y`, and one color.
+
+**Two details:**
+
+- The provider also listens to the browser's `offline`/`online` events and disconnects/reconnects immediately. An open WebSocket can otherwise linger for a while after the network drops.
+- A full page _refresh_ with the browser itself offline (DevTools → Offline) can't load the page at all without a service worker, which is out of scope (no PWA). What works is refreshing while the **sync server** is unreachable: the page loads from the web server and the board loads from IndexedDB.

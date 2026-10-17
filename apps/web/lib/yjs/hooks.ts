@@ -1,6 +1,7 @@
 import { WebSocketStatus, type HocuspocusProvider } from "@hocuspocus/provider";
 import type { Shape } from "@whiteboard/shared";
 import { useMemo, useSyncExternalStore } from "react";
+import type { IndexeddbPersistence } from "y-indexeddb";
 import type * as Y from "yjs";
 import { getOrder, getShapes } from "./schema";
 
@@ -86,18 +87,22 @@ export type ConnectionState = {
   saving: boolean;
 };
 
-function connectionStore(provider: HocuspocusProvider): Store<ConnectionState> {
-  let loaded = provider.synced;
+function connectionStore(
+  provider: HocuspocusProvider,
+  local: IndexeddbPersistence,
+): Store<ConnectionState> {
+  let loaded = provider.synced || local.synced;
   const read = (): ConnectionState => {
     const socket = provider.configuration.websocketProvider.status;
     // "Connected" means the socket is open *and* the document handshake finished.
     const status: ConnectionStatus =
-      socket === WebSocketStatus.Disconnected
+      !navigator.onLine || socket === WebSocketStatus.Disconnected
         ? "offline"
         : socket === WebSocketStatus.Connected && provider.synced
           ? "connected"
           : "connecting";
-    if (provider.synced) loaded = true;
+    // Show the board as soon as either the local copy or the server has loaded.
+    if (provider.synced || local.synced) loaded = true;
     return { status, loaded, saving: provider.hasUnsyncedChanges };
   };
   let snapshot = read();
@@ -119,7 +124,13 @@ function connectionStore(provider: HocuspocusProvider): Store<ConnectionState> {
       provider.on("synced", handler);
       provider.on("close", handler);
       provider.on("unsyncedChanges", handler);
+      local.on("synced", handler);
+      window.addEventListener("online", handler);
+      window.addEventListener("offline", handler);
       return () => {
+        local.off("synced", handler);
+        window.removeEventListener("online", handler);
+        window.removeEventListener("offline", handler);
         provider.off("status", handler);
         provider.off("synced", handler);
         provider.off("close", handler);
@@ -130,9 +141,12 @@ function connectionStore(provider: HocuspocusProvider): Store<ConnectionState> {
   };
 }
 
-/** Connection status of the sync provider, for the status dot and the loading screen. */
+/** Connection status of the sync provider, for the status dot, offline banner and loading screen. */
 export function useConnectionStatus(
   provider: HocuspocusProvider,
+  local: IndexeddbPersistence,
 ): ConnectionState {
-  return useStore(useMemo(() => connectionStore(provider), [provider]));
+  return useStore(
+    useMemo(() => connectionStore(provider, local), [provider, local]),
+  );
 }
