@@ -241,3 +241,5 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **Why:** Nothing in the app tables depends on what's inside `state`. Members, share links, versions, the sync server's auth and persistence, and the access check all work on "a row with an id, an owner, and a Y.Doc". One column lets documents reuse all of that unchanged, and existing rows become `BOARD` automatically. Renaming the tables and columns to `Item…` would touch every query and the sync server for no behavior change.
 
 **Alternatives considered:** a separate `Document` table with its own members, links and versions (duplicates four models and every action that uses them); a generic `Item` table with a rename migration (the same result, with a large risky diff).
+
+**Migration note:** `prisma migrate dev` in Prisma 7 doesn't regenerate the client. Run `pnpm --filter @whiteboard/db generate` afterwards, then **restart** `next dev`, which caches the Prisma client on `globalThis` across hot reloads. Until then, queries that select `kind` fail with "Unknown field `kind`".

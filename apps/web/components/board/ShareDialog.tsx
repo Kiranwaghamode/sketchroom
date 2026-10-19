@@ -29,18 +29,22 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const ROWS = [
-  { role: "EDITOR", label: "Anyone with the link can edit" },
-  { role: "VIEWER", label: "Anyone with the link can view" },
+const ROLES = [
+  { role: "EDITOR", verb: "edit" },
+  { role: "VIEWER", verb: "view" },
 ] as const;
 
 export function ShareDialog({
   boardId,
+  kind = "BOARD",
   isOwner,
 }: {
   boardId: string;
+  kind?: "BOARD" | "DOC";
   isOwner: boolean;
 }) {
+  const isDoc = kind === "DOC";
+  const noun = isDoc ? "document" : "board";
   const [open, setOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -60,7 +64,7 @@ export function ShareDialog({
     );
   }
 
-  async function copyLink(role: (typeof ROWS)[number]["role"]) {
+  async function copyLink(role: (typeof ROLES)[number]["role"]) {
     const result = await getOrCreateShareLink(boardId, role);
     if ("error" in result) {
       toast.error(result.error);
@@ -97,19 +101,22 @@ export function ShareDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Share board</DialogTitle>
+            <DialogTitle>Share {noun}</DialogTitle>
             <DialogDescription>
-              People who open a link need to log in, then the board appears on
+              People who open a link need to log in, then the {noun} appears on
               their dashboard.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            {ROWS.map(({ role, label }) => (
+            {ROLES.map(({ role, verb }) => (
               <div
                 key={role}
                 className="flex items-center justify-between gap-4 rounded-lg border p-3"
               >
-                <span className="text-sm">{label}</span>
+                <span className="text-sm">
+                  Anyone with the link can {verb}
+                  {isDoc && " this document"}
+                </span>
                 <Button
                   variant="outline"
                   size="sm"

@@ -27,6 +27,8 @@ const STATUS: Record<ConnectionStatus, { label: string; className: string }> = {
 
 type Props = {
   boardId: string;
+  /** Boards and documents share this top bar; only some wording differs. */
+  kind?: "BOARD" | "DOC";
   title: string;
   isOwner: boolean;
   readOnly: boolean;
@@ -40,6 +42,7 @@ type Props = {
 
 export function TopBar({
   boardId,
+  kind = "BOARD",
   title: initialTitle,
   isOwner,
   readOnly,
@@ -88,7 +91,7 @@ export function TopBar({
           autoFocus
           defaultValue={title}
           maxLength={80}
-          aria-label="Board title"
+          aria-label={kind === "DOC" ? "Document title" : "Board title"}
           onFocus={(e) => e.currentTarget.select()}
           onBlur={(e) => save(e.currentTarget.value)}
           onKeyDown={(e) => {
@@ -147,7 +150,7 @@ export function TopBar({
 
       <div className="ml-auto flex items-center gap-2">
         {awareness && <Avatars awareness={awareness} />}
-        <ShareDialog boardId={boardId} isOwner={isOwner} />
+        <ShareDialog boardId={boardId} kind={kind} isOwner={isOwner} />
         {history ? (
           <HistoryDialog
             boardId={boardId}

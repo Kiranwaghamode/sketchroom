@@ -18,7 +18,7 @@ export default async function JoinPage({ params }: PageProps<"/join/[token]">) {
           select: {
             boardId: true,
             role: true,
-            board: { select: { ownerId: true } },
+            board: { select: { ownerId: true, kind: true } },
           },
         })
       : null;
@@ -46,5 +46,9 @@ export default async function JoinPage({ params }: PageProps<"/join/[token]">) {
     });
   }
 
-  redirect(`/board/${link.boardId}`);
+  redirect(
+    link.board.kind === "DOC"
+      ? `/doc/${link.boardId}`
+      : `/board/${link.boardId}`,
+  );
 }

@@ -15,6 +15,9 @@ const TitleSchema = z
 
 export type ActionResult = { error: string } | { ok: true };
 
+// Rename, delete and leave work for documents too: they're rows in the same
+// table (see docs/decisions.md), so nothing here filters by kind.
+
 export async function createBoard() {
   const user = await requireUser();
   const board = await prisma.board.create({
@@ -22,6 +25,15 @@ export async function createBoard() {
     select: { id: true },
   });
   redirect(`/board/${board.id}`);
+}
+
+export async function createDocument() {
+  const user = await requireUser();
+  const doc = await prisma.board.create({
+    data: { ownerId: user.id, kind: "DOC", title: "Untitled document" },
+    select: { id: true },
+  });
+  redirect(`/doc/${doc.id}`);
 }
 
 export async function renameBoard(

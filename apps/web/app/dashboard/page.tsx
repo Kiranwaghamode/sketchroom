@@ -1,8 +1,9 @@
 import { prisma } from "@whiteboard/db";
+import { FileTextIcon, PenToolIcon } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { BoardCardMenu } from "@/components/dashboard/board-card-menu";
-import { NewBoardButton } from "@/components/dashboard/new-board-button";
+import { NewItemButton } from "@/components/dashboard/new-item-button";
 import { UserMenu } from "@/components/dashboard/user-menu";
 import {
   Card,
@@ -33,6 +34,7 @@ async function Dashboard() {
     select: {
       id: true,
       title: true,
+      kind: true,
       updatedAt: true,
       ownerId: true,
       members: { where: { userId: user.id }, select: { role: true } },
@@ -49,29 +51,37 @@ async function Dashboard() {
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 p-4 sm:p-6">
         {boards.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-            <p className="text-muted-foreground">No boards yet</p>
-            <NewBoardButton />
+            <p className="text-muted-foreground">Nothing here yet</p>
+            <NewItemButton />
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between">
-              <h1 className="text-lg font-semibold">Your boards</h1>
-              <NewBoardButton />
+              <h1 className="text-lg font-semibold">
+                Your boards and documents
+              </h1>
+              <NewItemButton />
             </div>
             <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {boards.map((board) => {
                 const isOwner = board.ownerId === user.id;
                 const role = board.members[0]?.role;
+                const isDoc = board.kind === "DOC";
+                const Icon = isDoc ? FileTextIcon : PenToolIcon;
                 return (
                   <li key={board.id} className="relative">
                     <Link
-                      href={`/board/${board.id}`}
+                      href={`/${isDoc ? "doc" : "board"}/${board.id}`}
                       className="block rounded-xl"
                     >
                       <Card className="transition-colors hover:bg-muted/50">
                         <CardHeader className="pr-12">
-                          <CardTitle className="truncate">
-                            {board.title}
+                          <CardTitle className="flex items-center gap-2">
+                            <Icon
+                              aria-label={isDoc ? "Document" : "Board"}
+                              className="size-4 shrink-0 text-muted-foreground"
+                            />
+                            <span className="truncate">{board.title}</span>
                           </CardTitle>
                           <CardDescription className="flex items-center gap-2">
                             Edited {timeAgo(board.updatedAt)}
@@ -87,6 +97,7 @@ async function Dashboard() {
                     <div className="absolute top-3 right-3">
                       <BoardCardMenu
                         boardId={board.id}
+                        kind={board.kind}
                         title={board.title}
                         isOwner={isOwner}
                       />

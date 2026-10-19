@@ -31,6 +31,7 @@ export const config = {
     "/signup",
     "/dashboard/:path*",
     "/board/:path*",
+    "/doc/:path*",
     "/join/:path*",
   ],
 };

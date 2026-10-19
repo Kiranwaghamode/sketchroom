@@ -40,14 +40,14 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 0 done. Next: Phase 1.
+**Current status:** Phase 1 done. Next: Phase 2.
 
-**Overall progress:** 1 / 10 phases complete (10%)
+**Overall progress:** 2 / 10 phases complete (20%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
 | 0 | Audit the existing project | ✅ Done | 2026-10-19 |
-| 1 | Data model and dashboard | ⬜ Not started | — |
+| 1 | Data model and dashboard | ✅ Done | 2026-10-19 |
 | 2 | Document editor (single user, data in Yjs) | ⬜ Not started | — |
 | 3 | Real-time sync | ⬜ Not started | — |
 | 4 | Live cursors and who's online | ⬜ Not started | — |
@@ -194,30 +194,30 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** documents exist in the database and can be created, listed, renamed, deleted and opened (empty page for now).
 
 **Tasks**
-- [ ] 1.1 **Data model.** Preferred approach (use it unless the audit showed a clear reason not to):
+- [x] 1.1 **Data model.** Preferred approach (use it unless the audit showed a clear reason not to):
   - Add an enum `ItemKind { BOARD DOC }` and a column `kind ItemKind @default(BOARD)` to the existing `Board` model, so members, share links, versions and the binary `state` column are **reused unchanged**.
   - Existing rows automatically become `BOARD`.
   - Write a migration and check that it doesn't change or lose existing data.
   - Note in `docs/decisions.md` that the table is still called `Board` for compatibility, even though it now holds documents too. **Don't rename the table** in this MVP.
   - If the existing schema makes this impossible, choose the approach that reuses the most existing code, and explain why in the decisions file.
-- [ ] 1.2 Generalize the access check so it works for both kinds (for example, `getItemRole(userId, itemId)`). Boards behave exactly as before.
-- [ ] 1.3 Server action `createDocument()` creates an item with `kind: DOC`, title "Untitled document", owned by the current user, then redirects to `/doc/[id]`.
-- [ ] 1.4 The existing rename, delete and leave actions must work for documents too. Reuse them and check that they don't assume `kind: BOARD`.
-- [ ] 1.5 **Dashboard:**
+- [x] 1.2 Generalize the access check so it works for both kinds (for example, `getItemRole(userId, itemId)`). Boards behave exactly as before.
+- [x] 1.3 Server action `createDocument()` creates an item with `kind: DOC`, title "Untitled document", owned by the current user, then redirects to `/doc/[id]`.
+- [x] 1.4 The existing rename, delete and leave actions must work for documents too. Reuse them and check that they don't assume `kind: BOARD`.
+- [x] 1.5 **Dashboard:**
   - Replace **New board** with a **New** dropdown: "Board" and "Document".
   - Cards show a `PenTool` icon (board) or a `FileText` icon (document) next to the title.
   - Clicking a card opens `/board/[id]` or `/doc/[id]` depending on `kind`.
   - Empty state text: "Nothing here yet" + the **New** dropdown.
-- [ ] 1.6 Route guards:
+- [x] 1.6 Route guards:
   - `/doc/[id]`: server component that checks access and that `kind === DOC`, otherwise `notFound()`.
   - `/board/[id]`: add a check that `kind === BOARD`, otherwise `notFound()`.
   - Add `/doc/*` to the middleware's protected routes.
-- [ ] 1.7 The `/doc/[id]` page renders the reused top bar with the title and a placeholder "Editor coming soon".
+- [x] 1.7 The `/doc/[id]` page renders the reused top bar with the title and a placeholder "Editor coming soon".
 
 **Done when**
-- [ ] I can create, rename, delete and open documents from the dashboard.
-- [ ] Opening a document's id under `/board/...` (or the other way around) shows a 404.
-- [ ] Existing boards still appear, open and work exactly as before.
+- [x] I can create, rename, delete and open documents from the dashboard.
+- [x] Opening a document's id under `/board/...` (or the other way around) shows a 404.
+- [x] Existing boards still appear, open and work exactly as before.
 
 ---
 
@@ -413,3 +413,4 @@ Check these at the very end, on the deployed app:
 > Format: `YYYY-MM-DD – Phase N complete – short summary – notes or known issues`
 
 - 2026-10-19 – Phase 0 complete – audit in docs/docs-feature-audit.md; Yjs + Hocuspocus confirmed; `kind` column chosen – baseline: 23 unit tests + 1 e2e pass (after re-seeding "Demo board")
+- 2026-10-19 – Phase 1 complete – ItemKind/kind column + migration, getItemRole, createDocument, New dropdown with icons, /doc/[id] placeholder, cross-kind 404s, join redirects by kind – leave for documents verified in Phase 5 (needs a shared doc)

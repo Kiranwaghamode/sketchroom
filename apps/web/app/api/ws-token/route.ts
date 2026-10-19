@@ -1,6 +1,6 @@
 import type { WsToken } from "@whiteboard/shared";
 import { SignJWT } from "jose";
-import { getBoardRole } from "@/lib/access";
+import { getItemRole } from "@/lib/access";
 import { auth } from "@/lib/auth";
 
 /** Issues a 5-minute JWT that lets the current user connect to one board on the sync server. */
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   if (!boardId)
     return Response.json({ error: "boardId is required" }, { status: 400 });
 
-  const role = await getBoardRole(session.user.id, boardId);
+  const role = await getItemRole(session.user.id, boardId);
   if (!role)
     return Response.json({ error: "No access to this board" }, { status: 403 });
 

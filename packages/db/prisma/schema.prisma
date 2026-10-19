@@ -87,9 +87,17 @@ enum Role {
   VIEWER
 }
 
+// What a Board row holds (PLAN2). Documents reuse the Board table and everything
+// attached to it (members, share links, versions, the `state` column).
+enum ItemKind {
+  BOARD
+  DOC
+}
+
 model Board {
   id        String         @id @default(cuid())
   title     String         @default("Untitled board")
+  kind      ItemKind       @default(BOARD)
   ownerId   String
   owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   state     Bytes? // Y.encodeStateAsUpdate(doc). Board content lives ONLY here.

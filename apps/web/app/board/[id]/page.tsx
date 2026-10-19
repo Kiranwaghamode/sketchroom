@@ -1,7 +1,7 @@
 import { prisma } from "@whiteboard/db";
 import { notFound } from "next/navigation";
 import { BoardClient } from "@/components/board/BoardClient";
-import { getBoardRole } from "@/lib/access";
+import { getItemRole } from "@/lib/access";
 import { requireUser } from "@/lib/auth";
 
 // The access check must finish before streaming starts, so a user without
@@ -11,14 +11,15 @@ export const instant = false;
 export default async function BoardPage({ params }: PageProps<"/board/[id]">) {
   const { id } = await params;
   const user = await requireUser();
-  const role = await getBoardRole(user.id, id);
+  const role = await getItemRole(user.id, id);
   if (!role) notFound();
 
   const board = await prisma.board.findUnique({
     where: { id },
-    select: { title: true },
+    select: { title: true, kind: true },
   });
-  if (!board) notFound();
+  // A document's id under /board/… is a 404 (and the other way around).
+  if (!board || board.kind !== "BOARD") notFound();
 
   return (
     <BoardClient

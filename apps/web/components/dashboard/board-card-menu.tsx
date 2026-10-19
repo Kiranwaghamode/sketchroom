@@ -37,16 +37,25 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-type Props = { boardId: string; title: string; isOwner: boolean };
+type Kind = "BOARD" | "DOC";
+/** "board" or "document", for menu and dialog wording. */
+const noun = (kind: Kind) => (kind === "DOC" ? "document" : "board");
 
-export function BoardCardMenu({ boardId, title, isOwner }: Props) {
+type Props = { boardId: string; kind?: Kind; title: string; isOwner: boolean };
+
+export function BoardCardMenu({
+  boardId,
+  kind = "BOARD",
+  title,
+  isOwner,
+}: Props) {
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   async function onLeave() {
     const result = await leaveBoard(boardId);
     if ("error" in result) toast.error(result.error);
-    else toast.success("You left the board");
+    else toast.success(`You left the ${noun(kind)}`);
   }
 
   return (
@@ -54,7 +63,11 @@ export function BoardCardMenu({ boardId, title, isOwner }: Props) {
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="ghost" size="icon-sm" aria-label="Board options" />
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={kind === "DOC" ? "Document options" : "Board options"}
+            />
           }
         >
           <MoreHorizontalIcon />
@@ -77,7 +90,7 @@ export function BoardCardMenu({ boardId, title, isOwner }: Props) {
           ) : (
             <DropdownMenuItem onClick={onLeave}>
               <LogOutIcon />
-              Leave board
+              Leave {noun(kind)}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
@@ -87,12 +100,14 @@ export function BoardCardMenu({ boardId, title, isOwner }: Props) {
         <>
           <RenameDialog
             boardId={boardId}
+            kind={kind}
             title={title}
             open={renameOpen}
             onOpenChange={setRenameOpen}
           />
           <DeleteDialog
             boardId={boardId}
+            kind={kind}
             title={title}
             open={deleteOpen}
             onOpenChange={setDeleteOpen}
@@ -105,12 +120,19 @@ export function BoardCardMenu({ boardId, title, isOwner }: Props) {
 
 type DialogProps = {
   boardId: string;
+  kind: Kind;
   title: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-function RenameDialog({ boardId, title, open, onOpenChange }: DialogProps) {
+function RenameDialog({
+  boardId,
+  kind,
+  title,
+  open,
+  onOpenChange,
+}: DialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -138,7 +160,7 @@ function RenameDialog({ boardId, title, open, onOpenChange }: DialogProps) {
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Rename board</DialogTitle>
+            <DialogTitle>Rename {noun(kind)}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`title-${boardId}`}>Title</Label>
@@ -171,7 +193,13 @@ function RenameDialog({ boardId, title, open, onOpenChange }: DialogProps) {
   );
 }
 
-function DeleteDialog({ boardId, title, open, onOpenChange }: DialogProps) {
+function DeleteDialog({
+  boardId,
+  kind,
+  title,
+  open,
+  onOpenChange,
+}: DialogProps) {
   const [pending, setPending] = useState(false);
 
   async function onDelete() {
@@ -183,14 +211,14 @@ function DeleteDialog({ boardId, title, open, onOpenChange }: DialogProps) {
       return;
     }
     onOpenChange(false);
-    toast.success("Board deleted");
+    toast.success(kind === "DOC" ? "Document deleted" : "Board deleted");
   }
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this board?</AlertDialogTitle>
+          <AlertDialogTitle>Delete this {noun(kind)}?</AlertDialogTitle>
           <AlertDialogDescription>
             &ldquo;{title}&rdquo; will be deleted for everyone it&rsquo;s shared
             with. This can&rsquo;t be undone.

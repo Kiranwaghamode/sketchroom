@@ -3,7 +3,7 @@
 import { prisma } from "@whiteboard/db";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import { getBoardRole } from "@/lib/access";
+import { getItemRole } from "@/lib/access";
 import { requireUser } from "@/lib/auth";
 
 const BoardIdSchema = z.string().min(1).max(64);
@@ -14,7 +14,7 @@ type LinkResult = { error: string } | { path: string };
 async function requireOwner(boardId: string) {
   const user = await requireUser();
   const id = BoardIdSchema.safeParse(boardId);
-  if (!id.success || (await getBoardRole(user.id, id.data)) !== "OWNER")
+  if (!id.success || (await getItemRole(user.id, id.data)) !== "OWNER")
     return null;
   return id.data;
 }

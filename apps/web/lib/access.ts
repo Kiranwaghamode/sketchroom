@@ -1,12 +1,15 @@
 import { prisma, type Role } from "@whiteboard/db";
 
-/** The user's role on a board, or null if they have no access (or the board doesn't exist). */
-export async function getBoardRole(
+/**
+ * The user's role on an item (a board or a document), or null if they have no
+ * access (or it doesn't exist). Both kinds live in the `Board` table.
+ */
+export async function getItemRole(
   userId: string,
-  boardId: string,
+  itemId: string,
 ): Promise<Role | null> {
   const board = await prisma.board.findUnique({
-    where: { id: boardId },
+    where: { id: itemId },
     select: {
       ownerId: true,
       members: { where: { userId }, select: { role: true } },

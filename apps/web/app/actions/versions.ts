@@ -3,7 +3,7 @@
 import { prisma } from "@whiteboard/db";
 import { z } from "zod";
 import * as Y from "yjs";
-import { getBoardRole } from "@/lib/access";
+import { getItemRole } from "@/lib/access";
 import { requireUser } from "@/lib/auth";
 
 const MAX_VERSIONS = 50;
@@ -24,7 +24,7 @@ export type VersionListItem = {
 
 async function roleFor(boardId: string) {
   const user = await requireUser();
-  return { user, role: await getBoardRole(user.id, boardId) };
+  return { user, role: await getItemRole(user.id, boardId) };
 }
 
 /**
