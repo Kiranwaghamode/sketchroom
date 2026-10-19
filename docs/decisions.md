@@ -231,3 +231,13 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **What:** With only text selected, the Transformer keeps the aspect ratio and shows corner and left/right handles (no top/bottom). Dragging a **corner** scales the text: `fontSize` (clamped to 8–400) and `width` scale together. Dragging a **side** handle changes only the wrapping `width`. In both cases `height` is re-measured from Konva's own text layout, so the selection box fits the wrapped text. In a mixed selection, text scales its font by the vertical factor.
 
 **Why:** Previously resizing a text box only changed its stored width/height, and the font size snapped back on release, which users read as "resizing text does nothing". Corner = scale and side = rewrap is the convention in most whiteboard tools.
+
+---
+
+## 2026-10-19 – Documents are rows in the `Board` table, with a `kind` column (PLAN2 Phase 0/1)
+
+**What:** A new enum `ItemKind { BOARD DOC }` and a column `Board.kind ItemKind @default(BOARD)`. A document is a `Board` row with `kind = DOC`, and its text lives in the same binary `state` column (a Y.Doc whose `"content"` is a `Y.XmlFragment`). The table and its relations keep their names (`Board`, `BoardMember`, `ShareLink`, `BoardVersion`, the `boardId` columns, and the `boardId` claim in the sync token), even though they now hold documents too. **Don't rename the table** in this MVP.
+
+**Why:** Nothing in the app tables depends on what's inside `state`. Members, share links, versions, the sync server's auth and persistence, and the access check all work on "a row with an id, an owner, and a Y.Doc". One column lets documents reuse all of that unchanged, and existing rows become `BOARD` automatically. Renaming the tables and columns to `Item…` would touch every query and the sync server for no behavior change.
+
+**Alternatives considered:** a separate `Document` table with its own members, links and versions (duplicates four models and every action that uses them); a generic `Item` table with a rename migration (the same result, with a large risky diff).
