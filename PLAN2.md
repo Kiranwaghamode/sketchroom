@@ -40,9 +40,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 7 done. Next: Phase 8.
+**Current status:** Phase 8 done. Next: Phase 9.
 
-**Overall progress:** 8 / 10 phases complete (80%)
+**Overall progress:** 9 / 10 phases complete (90%)
 
 | #   | Phase                                      | Status         | Completed on |
 | --- | ------------------------------------------ | -------------- | ------------ |
@@ -54,7 +54,7 @@
 | 5   | Permissions and share links                | ✅ Done        | 2026-10-19   |
 | 6   | Offline support                            | ✅ Done        | 2026-10-19   |
 | 7   | Undo and redo                              | ✅ Done        | 2026-10-19   |
-| 8   | Version history (save and restore)         | ⬜ Not started | —            |
+| 8   | Version history (save and restore)         | ✅ Done        | 2026-10-19   |
 | 9   | Tests, README and final check              | ⬜ Not started | —            |
 
 Status values: `⬜ Not started` · `🔄 In progress` · `✅ Done`
@@ -363,23 +363,23 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 
 **Tasks**
 
-- [ ] 8.1 Reuse the existing **save version** server action and the **History** dialog for documents (list, names, who saved, relative time, Restore button with confirm dialog). The stored state is the full Y.Doc, the same as for boards.
-- [ ] 8.2 `lib/yjs/doc-restore.ts`, **restore by moving forward. Never overwrite the stored `state` directly.**
+- [x] 8.1 Reuse the existing **save version** server action and the **History** dialog for documents (list, names, who saved, relative time, Restore button with confirm dialog). The stored state is the full Y.Doc, the same as for boards.
+- [x] 8.2 `lib/yjs/doc-restore.ts`, **restore by moving forward. Never overwrite the stored `state` directly.**
   1. **Before restoring, save the current content automatically** as a version named "Before restore" (simple safety net).
   2. Load the chosen version's state into a **temporary** `Y.Doc` with `Y.applyUpdate`, and get its `content` fragment.
   3. In **one** `doc.transact(...)` on the live doc: delete all children of the live `content` fragment, then insert **clones** of the temporary fragment's children (`child.clone()`) in order.
   4. It syncs to everyone like a normal edit.
   5. Optional (only if simple in the installed version): register the restore's transaction origin with the editor's Yjs UndoManager (`addTrackedOrigin`) so one undo reverts the restore. If it's not simple, skip it. The "Before restore" version is enough for the MVP.
-- [ ] 8.3 After restoring, show the toast "Version restored" and keep the editor focused.
-- [ ] 8.4 vitest tests for `doc-restore.ts`: after a restore, the live fragment's `toString()` equals the version's. Cover a version with headings, lists, bold and italic. Check that a "Before restore" version was created.
-- [ ] 8.5 Note in `docs/decisions.md`: why restoring replaces the fragment content in one transaction instead of overwriting the database (connected clients would merge newer content back in).
+- [x] 8.3 After restoring, show the toast "Version restored" and keep the editor focused.
+- [x] 8.4 vitest tests for `doc-restore.ts`: after a restore, the live fragment's `toString()` equals the version's. Cover a version with headings, lists, bold and italic. Check that a "Before restore" version was created.
+- [x] 8.5 Note in `docs/decisions.md`: why restoring replaces the fragment content in one transaction instead of overwriting the database (connected clients would merge newer content back in).
 
 **Done when**
 
-- [ ] Save a version, change a lot, restore: the document looks exactly like the saved version.
-- [ ] Restoring while another window is open updates that window too, and the restore isn't undone by the other window's sync.
-- [ ] The "Before restore" version appears in the list and can itself be restored.
-- [ ] Board version history still works.
+- [x] Save a version, change a lot, restore: the document looks exactly like the saved version.
+- [x] Restoring while another window is open updates that window too, and the restore isn't undone by the other window's sync.
+- [x] The "Before restore" version appears in the list and can itself be restored.
+- [x] Board version history still works.
 
 ---
 
@@ -440,3 +440,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-19 – Phase 5 complete – viewer mode (not editable, no toolbar, View only), edit/view/reset links and join redirect verified for documents, server drops viewer writes, leave works, board sharing unchanged – known limitation: a viewer's DevTools-forced local edit syncs if they're later upgraded to editor (same as boards; see decisions.md)
 - 2026-10-19 – Phase 6 complete – IndexedDB + show-on-first-load already shared via connectItem/useConnectionStatus; OfflineBanner and useBackOnlineToast extracted and reused; offline merge, server-down reload, logout cleanup verified – browser-offline reload still needs a service worker (out of scope, same as boards)
 - 2026-10-19 – Phase 7 complete – Collaboration's Yjs undo (own changes only), Undo/Redo toolbar buttons with disabled states, Mod-Z/Mod-Y/Shift-Mod-Z verified, per-person undo of text and formatting syncs, phrase-sized steps
+- 2026-10-19 – Phase 8 complete – History dialog shared via a restore() prop; doc restore = auto "Before restore" save + one-transaction fragment replace (RESTORE_ORIGIN, undoable in one step); 8 unit tests; verified with two windows; board history unchanged

@@ -1,7 +1,7 @@
 "use client";
 
 import { HistoryIcon } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import * as Y from "yjs";
 import {
@@ -31,32 +31,45 @@ import {
 import { Input } from "@/components/ui/input";
 import { base64ToBytes, bytesToBase64 } from "@/lib/base64";
 import { timeAgo } from "@/lib/time";
-import { restoreVersion } from "@/lib/yjs/restore";
-import { beginGesture, endGesture } from "@/lib/yjs/undo";
 
-type Props = {
-  boardId: string;
+export type HistoryOptions = {
   doc: Y.Doc;
+  /**
+   * Applies a saved version to the live doc (boards and documents restore
+   * differently). Returns an error message to show, if any.
+   */
+  restore: (versionState: Uint8Array) => Promise<string | void> | void;
+  /** Called once the dialog has fully closed after a restore. */
+  onRestored?: () => void;
+};
+
+type Props = HistoryOptions & {
+  boardId: string;
+  kind?: "BOARD" | "DOC";
   /** Owners and editors can save and restore. Viewers only see the list. */
   canEdit: boolean;
   /** Saving needs the current server state, so only when fully synced. */
   synced: boolean;
-  undoManager?: Y.UndoManager;
 };
 
 export function HistoryDialog({
   boardId,
+  kind = "BOARD",
   doc,
+  restore: applyVersion,
+  onRestored,
   canEdit,
   synced,
-  undoManager,
 }: Props) {
+  const isDoc = kind === "DOC";
+  const noun = isDoc ? "document" : "board";
   const [open, setOpen] = useState(false);
   const [versions, setVersions] = useState<VersionListItem[] | null>(null);
   const [label, setLabel] = useState("");
   const [saving, setSaving] = useState(false);
   const [restoring, setRestoring] = useState<VersionListItem | null>(null);
   const [busy, setBusy] = useState(false);
+  const restored = useRef(false);
 
   async function load() {
     setVersions(await listVersions(boardId));
@@ -88,10 +101,14 @@ export function HistoryDialog({
       toast.error(result.error);
       return;
     }
-    // Its own undo step: one undo reverts the whole restore, and nothing else.
-    beginGesture(undoManager);
-    restoreVersion(doc, base64ToBytes(result.state));
-    endGesture(undoManager);
+    setBusy(true);
+    const error = await applyVersion(base64ToBytes(result.state));
+    setBusy(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    restored.current = true;
     setOpen(false);
     toast.success("Version restored");
   }
@@ -111,14 +128,22 @@ export function HistoryDialog({
         History
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={setOpen}
+        onOpenChangeComplete={(isOpen) => {
+          if (isOpen || !restored.current) return;
+          restored.current = false;
+          onRestored?.();
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Version history</DialogTitle>
             <DialogDescription>
               {canEdit
-                ? "Save the board as it is now, or go back to an earlier version."
-                : "Versions saved by the people who can edit this board."}
+                ? `Save the ${noun} as it is now, or go back to an earlier version.`
+                : `Versions saved by the people who can edit this ${noun}.`}
             </DialogDescription>
           </DialogHeader>
 
@@ -144,7 +169,7 @@ export function HistoryDialog({
           )}
           {canEdit && !synced && (
             <p className="text-xs text-muted-foreground">
-              You can save a version once the board is connected and synced.
+              You can save a version once the {noun} is connected and synced.
             </p>
           )}
 
@@ -198,7 +223,9 @@ export function HistoryDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>Restore this version?</AlertDialogTitle>
             <AlertDialogDescription>
-              Everyone on the board will see it. You can undo this.
+              {isDoc
+                ? "Everyone in the document will see it. The current text is saved as “Before restore” first, and you can undo this."
+                : "Everyone on the board will see it. You can undo this."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

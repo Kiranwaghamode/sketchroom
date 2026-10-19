@@ -1,13 +1,17 @@
 "use client";
 
 import type { HocuspocusProvider } from "@hocuspocus/provider";
+import type { Editor } from "@tiptap/react";
 import type { Role } from "@whiteboard/db";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { IndexeddbPersistence } from "y-indexeddb";
 import type * as Y from "yjs";
 import { TopBar } from "@/components/board/TopBar";
 import { OfflineBanner, useBackOnlineToast } from "@/components/shared/offline";
+import { saveVersion } from "@/app/actions/versions";
+import { bytesToBase64 } from "@/lib/base64";
 import { userColor } from "@/lib/presence";
+import { restoreDocumentVersion } from "@/lib/yjs/doc-restore";
 import { createDocumentYDoc } from "@/lib/yjs/doc-schema";
 import { useConnectionStatus } from "@/lib/yjs/hooks";
 import { connectItem } from "@/lib/yjs/provider";
@@ -99,6 +103,8 @@ function DocLayout({
   /** Set once the content has loaded (from the server or this device). */
   session?: Session;
 }) {
+  const editor = useRef<Editor | null>(null);
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <TopBar
@@ -110,6 +116,21 @@ function DocLayout({
         status={status}
         saving={session ? saving : undefined}
         awareness={session?.provider.awareness ?? undefined}
+        history={
+          session && {
+            doc: session.doc,
+            restore: (state) =>
+              restoreDocumentVersion(session.doc, state, (current, label) =>
+                saveVersion({
+                  boardId: docId,
+                  state: bytesToBase64(current),
+                  label,
+                }),
+              ),
+            // Keep writing where you were: focus the editor once the dialog has closed.
+            onRestored: () => editor.current?.commands.focus(),
+          }
+        }
       />
       {status === "offline" && <OfflineBanner />}
       {/* The editor is created only after the Y.Doc has its content, from
@@ -120,6 +141,7 @@ function DocLayout({
           provider={session.provider}
           user={{ id: userId, name: userName, color: userColor(userId) }}
           readOnly={role === "VIEWER"}
+          onReady={(e) => (editor.current = e)}
         />
       ) : (
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">

@@ -4,7 +4,6 @@ import { ArrowLeftIcon, HistoryIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import type * as Y from "yjs";
 import { renameBoard } from "@/app/actions/boards";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +15,7 @@ import type { ConnectionStatus } from "@/lib/yjs/hooks";
 import { cn } from "@/lib/utils";
 import type { Awareness } from "@/lib/presence";
 import { Avatars } from "./Avatars";
-import { HistoryDialog } from "./HistoryDialog";
+import { HistoryDialog, type HistoryOptions } from "./HistoryDialog";
 import { ShareDialog } from "./ShareDialog";
 
 const STATUS: Record<ConnectionStatus, { label: string; className: string }> = {
@@ -37,7 +36,7 @@ type Props = {
   saving?: boolean;
   awareness?: Awareness;
   /** Available once the board has loaded. */
-  history?: { doc: Y.Doc; undoManager?: Y.UndoManager };
+  history?: HistoryOptions;
 };
 
 export function TopBar({
@@ -154,8 +153,8 @@ export function TopBar({
         {history ? (
           <HistoryDialog
             boardId={boardId}
-            doc={history.doc}
-            undoManager={history.undoManager}
+            kind={kind}
+            {...history}
             canEdit={!readOnly}
             synced={status === "connected"}
           />

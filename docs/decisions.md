@@ -292,7 +292,7 @@ After installing packages while `next dev` was stopped, the restarted dev server
 
 **What:** nothing document-specific was needed for syncing. `connectItem` attaches y-indexeddb (prefix `whiteboard-board-`) to every item, `useConnectionStatus` already shows the content when **either** IndexedDB or the server has loaded, and logout's `clearLocalItems` deletes every database with that prefix. The offline banner and the "Back online – changes synced" toast moved from `BoardClient` into `components/shared/offline.tsx` (`OfflineBanner`, `useBackOnlineToast`), with the same markup and logic, and both pages use them.
 
-**Verified:** with A's browser offline, A and B typed in the same paragraph. After reconnecting, both windows had identical text containing both sentences, and A got the banner and then the toast. With the sync server stopped, A typed, reloaded, and the text came back from IndexedDB. Once the server was back, it reached B. On reopening, the content appears before `provider.synced` is true (served from IndexedDB). After logout, the document's IndexedDB database is gone. As recorded for boards in Phase 7, a reload with the *browser itself* offline can't load the page without a service worker, which is out of scope.
+**Verified:** with A's browser offline, A and B typed in the same paragraph. After reconnecting, both windows had identical text containing both sentences, and A got the banner and then the toast. With the sync server stopped, A typed, reloaded, and the text came back from IndexedDB. Once the server was back, it reached B. On reopening, the content appears before `provider.synced` is true (served from IndexedDB). After logout, the document's IndexedDB database is gone. As recorded for boards in Phase 7, a reload with the _browser itself_ offline can't load the page without a service worker, which is out of scope.
 
 ---
 
@@ -301,3 +301,19 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **What:** StarterKit's `undoRedo` stays off (Phase 2). The Collaboration extension's Yjs UndoManager provides `undo`/`redo` and binds `Mod-z`, `Mod-y` and `Shift-Mod-z`. It only tracks transactions from this editor's own sync plugin, so remote changes are never undone, and it merges edits less than 500 ms apart (Yjs's default `captureTimeout`) into one step. The toolbar's Undo/Redo buttons sit at the right end, read `editor.can().undo()`/`redo()` through the same `useEditorState` selector as the format buttons (deep-compared, so they re-render only when something changes), and are hidden for viewers along with the rest of the toolbar.
 
 **Verified:** Alice typed, Bob typed into the same paragraph, and Alice typed again. Alice's two undos removed exactly her two phrases, Bob's text stayed, and both windows matched after each step. Ctrl+Y and Ctrl+Shift+Z redid them and synced, and the buttons disable when their stack is empty. Bob's undo of his bold removed only the bold. A phrase typed in one burst undoes in one step.
+
+---
+
+## 2026-10-19 – Restoring a document version (PLAN2 Phase 8)
+
+**What:** Documents reuse the board's version actions (`saveVersion`, `listVersions`, `getVersionState`) and the History dialog, which now takes a `restore(versionState)` function and a `kind` for its wording. Boards pass their existing diff-based `restoreVersion` wrapped in `beginGesture`/`endGesture` (unchanged behavior). Documents pass `restoreDocumentVersion` from `lib/yjs/doc-restore.ts`:
+
+1. Save the current content as a version named **"Before restore"**. If that save fails, stop, change nothing, and show an error.
+2. Load the chosen version into a temporary Y.Doc and clone the blocks of its `content` fragment.
+3. In **one** transaction with origin `RESTORE_ORIGIN`, delete every block of the live fragment and insert the clones.
+
+When the editor is created, `RESTORE_ORIGIN` is added to its Yjs UndoManager (`yUndoPluginKey` → `addTrackedOrigin`), so one Ctrl+Z reverts a restore. After the dialog has fully closed (`onOpenChangeComplete`), the editor gets focus back.
+
+**Why replace the fragment instead of overwriting the database:** a CRDT merges by adding history and never forgets it. If `Board.state` were overwritten with the old bytes, every connected or offline client would still hold the newer content, see it as "missing" on the server, and send it right back, so the document would snap back to its current state. Replacing the content as a new forward edit is the only restore that sticks, and it syncs to everyone like normal typing. The blocks are replaced wholesale instead of diffed (as boards do), because text structure has no stable ids to diff by, and one transaction keeps it a single, atomic step.
+
+**Verified:** saved "v1", replaced most of the text from two windows, and restored. Both windows matched v1 exactly and still did 4.5 s later, and the editor kept focus. "Before restore" appeared and restoring it brought back the pre-restore text in both windows. Ctrl+Z right after a restore reverted it, and the undo synced. Board history (save and restore) behaves as before, with no "Before restore" entry. `lib/yjs/doc-restore.test.ts` (8 tests) covers headings, both list kinds, bold and italic, the single `RESTORE_ORIGIN` transaction, syncing and a stale client reconnecting, one-step undo, the "Before restore" save (its state is the pre-restore content, and it can itself be restored), and aborting when that save fails.

@@ -12,7 +12,8 @@ import { userColor } from "@/lib/presence";
 import { useConnectionStatus } from "@/lib/yjs/hooks";
 import { connectItem } from "@/lib/yjs/provider";
 import { createBoardDoc } from "@/lib/yjs/schema";
-import { createUndoManager } from "@/lib/yjs/undo";
+import { restoreVersion } from "@/lib/yjs/restore";
+import { beginGesture, createUndoManager, endGesture } from "@/lib/yjs/undo";
 import { useEditor } from "@/stores/editor";
 import { SelectionPanel } from "./SelectionPanel";
 import { Toolbar } from "./Toolbar";
@@ -129,7 +130,15 @@ function BoardLayout({
         saving={session ? saving : undefined}
         awareness={session?.provider.awareness ?? undefined}
         history={
-          session && { doc: session.doc, undoManager: session.undoManager }
+          session && {
+            doc: session.doc,
+            restore: (state) => {
+              // Its own undo step: one undo reverts the whole restore, and nothing else.
+              beginGesture(session.undoManager);
+              restoreVersion(session.doc, state);
+              endGesture(session.undoManager);
+            },
+          }
         }
       />
       {status === "offline" && <OfflineBanner />}

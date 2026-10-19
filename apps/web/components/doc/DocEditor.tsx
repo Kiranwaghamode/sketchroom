@@ -4,10 +4,12 @@ import type { HocuspocusProvider } from "@hocuspocus/provider";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import { Placeholder } from "@tiptap/extensions";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { yUndoPluginKey } from "@tiptap/y-tiptap";
 import type * as Y from "yjs";
 import type { PresenceUser } from "@/lib/presence";
+import { RESTORE_ORIGIN } from "@/lib/yjs/doc-restore";
 import { DOC_FIELD } from "@/lib/yjs/doc-schema";
 import { DocToolbar } from "./DocToolbar";
 
@@ -21,6 +23,8 @@ type Props = {
    * real protection; this only makes the page behave accordingly.
    */
   readOnly: boolean;
+  /** Receives the editor once it exists (for focusing it after a restore). */
+  onReady?: (editor: Editor) => void;
 };
 
 /**
@@ -28,7 +32,7 @@ type Props = {
  * There's deliberately no `content` option, because it would insert the text
  * again on every load.
  */
-export function DocEditor({ doc, provider, user, readOnly }: Props) {
+export function DocEditor({ doc, provider, user, readOnly, onReady }: Props) {
   const editor = useEditor(
     {
       // Render on the client only, so the server HTML can't mismatch (no hydration warnings).
@@ -69,6 +73,14 @@ export function DocEditor({ doc, provider, user, readOnly }: Props) {
       ],
       editorProps: {
         attributes: { class: "doc-content", "aria-label": "Document" },
+      },
+      onCreate: ({ editor }) => {
+        // Restoring a version is a transaction with RESTORE_ORIGIN. Tracking it
+        // in this editor's Yjs undo manager makes one Ctrl+Z revert the restore.
+        yUndoPluginKey
+          .getState(editor.state)
+          ?.undoManager.addTrackedOrigin(RESTORE_ORIGIN);
+        onReady?.(editor);
       },
     },
     // `user` is a new object on each render, so depend on its fields.
