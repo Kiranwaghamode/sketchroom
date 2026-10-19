@@ -40,15 +40,15 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 1 done. Next: Phase 2.
+**Current status:** Phase 2 done. Next: Phase 3.
 
-**Overall progress:** 2 / 10 phases complete (20%)
+**Overall progress:** 3 / 10 phases complete (30%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
 | 0 | Audit the existing project | ✅ Done | 2026-10-19 |
 | 1 | Data model and dashboard | ✅ Done | 2026-10-19 |
-| 2 | Document editor (single user, data in Yjs) | ⬜ Not started | — |
+| 2 | Document editor (single user, data in Yjs) | ✅ Done | 2026-10-19 |
 | 3 | Real-time sync | ⬜ Not started | — |
 | 4 | Live cursors and who's online | ⬜ Not started | — |
 | 5 | Permissions and share links | ⬜ Not started | — |
@@ -226,26 +226,26 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** a clean, working text editor for one person, where the content **already lives in a Y.Doc**, so adding real-time sync in Phase 3 takes only a few lines.
 
 **Tasks**
-- [ ] 2.1 Install the Tiptap packages from section 2.2 (same major version).
-- [ ] 2.2 `lib/yjs/doc-schema.ts`: `createDocumentYDoc()` returns `{ doc, fragment: doc.getXmlFragment('content') }`.
-- [ ] 2.3 `components/doc/DocEditor.tsx` (client component), using `useEditor` with:
+- [x] 2.1 Install the Tiptap packages from section 2.2 (same major version).
+- [x] 2.2 `lib/yjs/doc-schema.ts`: `createDocumentYDoc()` returns `{ doc, fragment: doc.getXmlFragment('content') }`.
+- [x] 2.3 `components/doc/DocEditor.tsx` (client component), using `useEditor` with:
   - `StarterKit` configured to keep **only**: document, paragraph, text, heading (levels 1 and 2 only), bold, italic, bulletList, orderedList, listItem, hardBreak. **Turn off:** history/undoRedo (required, see 2.3 of section 2), blockquote, codeBlock, code, horizontalRule, strike, and anything else not listed. Check the option names in the installed version.
   - `Collaboration.configure({ document: doc, field: 'content' })` (or `fragment`, depending on the version).
   - Placeholder: "Start writing…".
   - `immediatelyRender: false`. **No `content` option.**
-- [ ] 2.4 Styling (Tailwind, in a `.doc-content` class): centered column, max width about 720px, padding 48px top, base font size 16–17px, line height about 1.7, clear H1/H2 sizes, normal list indentation, visible placeholder in gray. White page on a very light gray background. Focus the editor when the page opens.
-- [ ] 2.5 `components/doc/DocToolbar.tsx`: slim sticky row under the top bar with buttons `H1`, `H2`, **B**, *I*, bullet list, numbered list. Each button:
+- [x] 2.4 Styling (Tailwind, in a `.doc-content` class): centered column, max width about 720px, padding 48px top, base font size 16–17px, line height about 1.7, clear H1/H2 sizes, normal list indentation, visible placeholder in gray. White page on a very light gray background. Focus the editor when the page opens.
+- [x] 2.5 `components/doc/DocToolbar.tsx`: slim sticky row under the top bar with buttons `H1`, `H2`, **B**, *I*, bullet list, numbered list. Each button:
   - runs the matching editor command (`toggleHeading({ level: 1 })`, `toggleBold()`, and so on),
   - shows as active when `editor.isActive(...)` is true,
   - has a tooltip with its shortcut (Ctrl/⌘+B, Ctrl/⌘+I, Ctrl/⌘+Alt+1, Ctrl/⌘+Alt+2, Ctrl/⌘+Shift+8, Ctrl/⌘+Shift+7).
   Undo and Redo buttons are added in Phase 7.
-- [ ] 2.6 Check that markdown shortcuts work: `# `, `## `, `- `, `1. `, `**text**`, `*text*`.
-- [ ] 2.7 Unit test (vitest): creating the Y.Doc and inserting text into the fragment gives the expected `toJSON()` / text.
+- [x] 2.6 Check that markdown shortcuts work: `# `, `## `, `- `, `1. `, `**text**`, `*text*`.
+- [x] 2.7 Unit test (vitest): creating the Y.Doc and inserting text into the fragment gives the expected `toJSON()` / text.
 
 **Done when**
-- [ ] I can write and format text with every toolbar button and shortcut.
-- [ ] Logging `doc.getXmlFragment('content').toString()` shows my text and formatting.
-- [ ] No hydration warnings in the browser console.
+- [x] I can write and format text with every toolbar button and shortcut.
+- [x] Logging `doc.getXmlFragment('content').toString()` shows my text and formatting.
+- [x] No hydration warnings in the browser console.
 
 ---
 
@@ -414,3 +414,4 @@ Check these at the very end, on the deployed app:
 
 - 2026-10-19 – Phase 0 complete – audit in docs/docs-feature-audit.md; Yjs + Hocuspocus confirmed; `kind` column chosen – baseline: 23 unit tests + 1 e2e pass (after re-seeding "Demo board")
 - 2026-10-19 – Phase 1 complete – ItemKind/kind column + migration, getItemRole, createDocument, New dropdown with icons, /doc/[id] placeholder, cross-kind 404s, join redirects by kind – leave for documents verified in Phase 5 (needs a shared doc)
+- 2026-10-19 – Phase 2 complete – Tiptap 3.32 editor bound to Y.XmlFragment "content", slim toolbar with active states and shortcut tooltips, markdown shortcuts verified, doc-schema tests – the existing dev-only Next "instant" validation message on /login and /dashboard is unrelated

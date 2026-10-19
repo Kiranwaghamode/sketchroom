@@ -243,3 +243,15 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **Alternatives considered:** a separate `Document` table with its own members, links and versions (duplicates four models and every action that uses them); a generic `Item` table with a rename migration (the same result, with a large risky diff).
 
 **Migration note:** `prisma migrate dev` in Prisma 7 doesn't regenerate the client. Run `pnpm --filter @whiteboard/db generate` afterwards, then **restart** `next dev`, which caches the Prisma client on `globalThis` across hot reloads. Until then, queries that select `kind` fail with "Unknown field `kind`".
+
+---
+
+## 2026-10-19 – Document editor setup (PLAN2 Phase 2)
+
+**What:** Tiptap 3.32 (all `@tiptap/*` packages pinned to the same version, plus the `@tiptap/y-tiptap` binding that Collaboration needs). StarterKit runs with `heading: { levels: [1, 2] }`. Turned off: `undoRedo` (Collaboration's Yjs undo replaces it), `blockquote`, `code`, `codeBlock`, `horizontalRule`, `strike`, `link`, `underline`, `gapcursor` and `trailingNode`. Kept: `dropcursor` (drag-and-drop of selected text) and `listKeymap` (Tab/Backspace behave correctly in lists). Collaboration binds to the Y.Doc's `"content"` fragment, the placeholder comes from `@tiptap/extensions`, and `useEditor` uses `immediatelyRender: false` with **no** `content` option.
+
+**Why `trailingNode` is off:** it appends an empty paragraph whenever the document doesn't end with one. Each client does that independently, so two people opening a document at the same time can each add one, and the extra paragraphs merge in.
+
+**Toolbar:** `useEditorState` with a selector that returns the six active states as one string, so the toolbar re-renders only when an active state changes, not on every keystroke. Buttons `preventDefault` on mousedown so the text selection stays where it is.
+
+**Testing note:** Automated tests must pause briefly (about 100 ms) between a caret-moving key like `End` and the next edit. ProseMirror picks up native selection changes asynchronously, so `End` immediately followed by `Enter` (faster than any person types) still acts on the old selection.
