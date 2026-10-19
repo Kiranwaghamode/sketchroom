@@ -40,7 +40,7 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 9 in progress. Done: 9.1, 9.4, 9.6, 9.7. Written but not yet run: 9.2 (e2e test; the dev server was stopped for low memory). 9.3 local CI steps pass; e2e + CI run pending. Next: run e2e, then 9.5 deploy (needs the user's hosting accounts).
+**Current status:** Phase 9 in progress. Done: 9.1, 9.2, 9.4, 9.6, 9.7. 9.3: whole suite passes locally (39 unit + 2 e2e; CI steps run locally); a CI run on GitHub needs a push. Next: 9.3 CI run and 9.5 deploy (need the user's go-ahead and hosting accounts).
 
 **Overall progress:** 9 / 10 phases complete (90%)
 
@@ -390,7 +390,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Tasks**
 
 - [x] 9.1 **Convergence test (vitest):** two Y.Docs, each inserting and deleting text at random positions in a `Y.XmlFragment` (or `Y.Text` inside it). Exchange updates in random order (including duplicates) and check that both docs end up with the same `toString()`. Run with a few random seeds.
-- [ ] 9.2 **Playwright end-to-end test** (`e2e/docs-collab.spec.ts`) with two browser contexts, two seeded users, one shared document:
+- [x] 9.2 **Playwright end-to-end test** (`e2e/docs-collab.spec.ts`) with two browser contexts, two seeded users, one shared document:
   - User A types "Hello" → user B sees "Hello".
   - Both type at the same time in the same paragraph → both see the same final text containing both inputs.
   - User B makes a word bold → user A sees it bold.
