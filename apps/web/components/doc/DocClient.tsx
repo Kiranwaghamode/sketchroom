@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import type { IndexeddbPersistence } from "y-indexeddb";
 import type * as Y from "yjs";
 import { TopBar } from "@/components/board/TopBar";
+import { userColor } from "@/lib/presence";
 import { createDocumentYDoc } from "@/lib/yjs/doc-schema";
 import { useConnectionStatus } from "@/lib/yjs/hooks";
 import { connectItem } from "@/lib/yjs/provider";
@@ -26,7 +27,7 @@ type Session = {
 };
 
 export function DocClient(props: Props) {
-  const { docId } = props;
+  const { docId, userId, userName } = props;
   const [session, setSession] = useState<Session | null>(null);
 
   // One Y.Doc + provider per document, created in an effect and destroyed on
@@ -39,15 +40,28 @@ export function DocClient(props: Props) {
     // stored from the effect; creating it during render would leak sockets.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSession({ doc, provider, local });
+
+    // Presence: who I am (avatars, and my caret label on other screens). The
+    // caret extension sets the same value once the editor exists.
+    const awareness = provider.awareness;
+    awareness?.setLocalStateField("user", {
+      id: userId,
+      name: userName,
+      color: userColor(userId),
+    });
+    // Leave presence right away when the tab closes, instead of waiting for the timeout.
+    const leave = () => awareness?.setLocalState(null);
+    window.addEventListener("beforeunload", leave);
     if (process.env.NODE_ENV !== "production") {
       // For debugging in DevTools: doc.getXmlFragment("content").toString()
       Object.assign(window, { doc, provider });
     }
     return () => {
+      window.removeEventListener("beforeunload", leave);
       cleanup();
       doc.destroy();
     };
-  }, [docId]);
+  }, [docId, userId, userName]);
 
   if (!session) return <DocLayout {...props} status="connecting" />;
   return <ConnectedDoc {...props} session={session} />;
@@ -70,6 +84,8 @@ function ConnectedDoc({ session, ...props }: Props & { session: Session }) {
 
 function DocLayout({
   docId,
+  userId,
+  userName,
   title,
   role,
   status,
@@ -91,10 +107,15 @@ function DocLayout({
         readOnly={role === "VIEWER"}
         status={status}
         saving={session ? saving : undefined}
+        awareness={session?.provider.awareness ?? undefined}
       />
       {/* The editor is created only after the Y.Doc has its content. */}
       {session ? (
-        <DocEditor doc={session.doc} />
+        <DocEditor
+          doc={session.doc}
+          provider={session.provider}
+          user={{ id: userId, name: userName, color: userColor(userId) }}
+        />
       ) : (
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
           Loading document…

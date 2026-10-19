@@ -177,3 +177,30 @@
   color: var(--muted-foreground);
   pointer-events: none;
 }
+
+/* Other people's carets in a document (PLAN2 Phase 4): a 2px line in their
+   color with a small name label above it. The 2px comes from 1px borders on both sides, and the
+   negative margins keep the caret from pushing text aside. */
+.collaboration-carets__caret {
+  position: relative;
+  margin-right: -1px;
+  margin-left: -1px;
+  border-right: 1px solid;
+  border-left: 1px solid;
+  word-break: normal;
+  pointer-events: none;
+}
+.collaboration-carets__label {
+  position: absolute;
+  bottom: 100%;
+  left: -1px;
+  padding: 1px 5px;
+  border-radius: 4px 4px 4px 0;
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  user-select: none;
+}

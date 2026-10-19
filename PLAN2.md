@@ -40,9 +40,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 3 done. Next: Phase 4.
+**Current status:** Phase 4 done. Next: Phase 5.
 
-**Overall progress:** 4 / 10 phases complete (40%)
+**Overall progress:** 5 / 10 phases complete (50%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
@@ -50,7 +50,7 @@
 | 1 | Data model and dashboard | ✅ Done | 2026-10-19 |
 | 2 | Document editor (single user, data in Yjs) | ✅ Done | 2026-10-19 |
 | 3 | Real-time sync | ✅ Done | 2026-10-19 |
-| 4 | Live cursors and who's online | ⬜ Not started | — |
+| 4 | Live cursors and who's online | ✅ Done | 2026-10-19 |
 | 5 | Permissions and share links | ⬜ Not started | — |
 | 6 | Offline support | ⬜ Not started | — |
 | 7 | Undo and redo | ⬜ Not started | — |
@@ -276,16 +276,16 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** see where other people are typing, and who is in the document.
 
 **Tasks**
-- [ ] 4.1 Add the collaboration caret extension (section 2.2) with `provider` and `user: { name, color }`. Use the **same** name and color logic the whiteboard uses for awareness, so a user has the same color everywhere.
-- [ ] 4.2 Style the carets minimally: a 2px colored line, a small name label above it in the user's color with white text, and a light (about 20% opacity) background on selected text.
-- [ ] 4.3 Reuse the **Avatars** component in the top bar for documents (it reads the same awareness `user` field).
-- [ ] 4.4 Make sure leaving the page clears this user's awareness state (same as boards).
+- [x] 4.1 Add the collaboration caret extension (section 2.2) with `provider` and `user: { name, color }`. Use the **same** name and color logic the whiteboard uses for awareness, so a user has the same color everywhere.
+- [x] 4.2 Style the carets minimally: a 2px colored line, a small name label above it in the user's color with white text, and a light (about 20% opacity) background on selected text.
+- [x] 4.3 Reuse the **Avatars** component in the top bar for documents (it reads the same awareness `user` field).
+- [x] 4.4 Make sure leaving the page clears this user's awareness state (same as boards).
 
 **Done when**
-- [ ] With two windows open, each shows the other's caret with their name, moving as they type.
-- [ ] Selecting text in one window highlights it in the other in that user's color.
-- [ ] Closing a tab removes its caret and avatar within a few seconds.
-- [ ] Nothing about cursors is stored in the Y.Doc or the database.
+- [x] With two windows open, each shows the other's caret with their name, moving as they type.
+- [x] Selecting text in one window highlights it in the other in that user's color.
+- [x] Closing a tab removes its caret and avatar within a few seconds.
+- [x] Nothing about cursors is stored in the Y.Doc or the database.
 
 ---
 
@@ -416,3 +416,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-19 – Phase 1 complete – ItemKind/kind column + migration, getItemRole, createDocument, New dropdown with icons, /doc/[id] placeholder, cross-kind 404s, join redirects by kind – leave for documents verified in Phase 5 (needs a shared doc)
 - 2026-10-19 – Phase 2 complete – Tiptap 3.32 editor bound to Y.XmlFragment "content", slim toolbar with active states and shortcut tooltips, markdown shortcuts verified, doc-schema tests – the existing dev-only Next "instant" validation message on /login and /dashboard is unrelated
 - 2026-10-19 – Phase 3 complete – connectItem/clearLocalItems, DocClient with provider + IndexedDB, status dot and Saved/Saving…, sync server unchanged – verified simultaneous typing, formatting sync, no duplication on reload, persistence across a sync-server restart
+- 2026-10-19 – Phase 4 complete – CollaborationCaret with shared name/color logic, 2px caret + label + 20% selection, Avatars reused, presence cleared on unload (≈220 ms) – y-tiptap's position-migration map is the only non-content Y type; it holds no user/cursor data

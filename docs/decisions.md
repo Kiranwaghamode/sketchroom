@@ -263,3 +263,15 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **What:** `connectBoard`/`clearLocalBoards` were renamed to `connectItem`/`clearLocalItems`, with no behavior change. Documents connect to the same Hocuspocus server with the room name = item id, and get the same 5-minute JWT from `/api/ws-token` (whose query parameter and claim are still called `boardId`). The sync server's auth and persistence weren't changed: neither looks at the item's kind. `DocClient` copies `BoardClient`'s lifecycle: one Y.Doc + provider per page, created in an effect and destroyed on unmount, and the editor is created only once the content has loaded.
 
 **Verified:** two users typing in the same paragraph at the same time (characters 35–40 ms apart) end with identical documents, every character present once, and each person's words contiguous (Yjs anchors each insert to the author's previous character). Bold, headings and lists sync both ways. Reloading twice doesn't duplicate anything. After every tab closed and the sync server restarted, a fresh browser loaded the exact same content from Postgres, and `updatedAt` moves forward when the server saves.
+
+---
+
+## 2026-10-19 – Carets and presence in documents (PLAN2 Phase 4)
+
+**What:** `@tiptap/extension-collaboration-caret` with the provider and `user: { id, name, color }`. That's the same object the board publishes, so the existing `Avatars` component works unchanged and a person has the same color everywhere (`userColor(userId)`). `DocClient` also sets `user` as soon as the provider exists, so avatars appear before the editor has loaded, and it clears awareness on `beforeunload`, like boards. The selection highlight is the user's color at alpha `33` (about 20%). The caret is two 1px borders with negative margins, so it never shifts text, and the label is absolutely positioned above it.
+
+**About `__tiptap_position_migrations:root:content`:** y-tiptap 3 adds this map to the Y.Doc. It records which Yjs items replaced which (`client`/`clock` ranges) when the editor rewrites content, so relative positions keep resolving. It holds no names, users or cursor positions. Carets and selections travel only through awareness and are never stored.
+
+**Verified:** each window shows the other's caret with their name, and it moves as they type. A selection shows on the other screen in the selector's color at 20%. Both windows show 2 avatars, and closing a tab removes the caret and avatar in about 220 ms.
+
+**Testing notes:** (1) Next 16 keeps the previous route mounted but hidden, so the dashboard header's avatar stays in the DOM after a client-side navigation. Selectors that count elements need `:visible`. (2) Once, Turbopack didn't pick up a shell append to `globals.css` until the file was edited again. If new CSS seems to have no effect in development, check the served stylesheet first.
