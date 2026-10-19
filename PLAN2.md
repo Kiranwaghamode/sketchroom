@@ -40,9 +40,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 6 done. Next: Phase 7 (waiting for the user).
+**Current status:** Phase 7 done. Next: Phase 8.
 
-**Overall progress:** 7 / 10 phases complete (70%)
+**Overall progress:** 8 / 10 phases complete (80%)
 
 | #   | Phase                                      | Status         | Completed on |
 | --- | ------------------------------------------ | -------------- | ------------ |
@@ -53,7 +53,7 @@
 | 4   | Live cursors and who's online              | ✅ Done        | 2026-10-19   |
 | 5   | Permissions and share links                | ✅ Done        | 2026-10-19   |
 | 6   | Offline support                            | ✅ Done        | 2026-10-19   |
-| 7   | Undo and redo                              | ⬜ Not started | —            |
+| 7   | Undo and redo                              | ✅ Done        | 2026-10-19   |
 | 8   | Version history (save and restore)         | ⬜ Not started | —            |
 | 9   | Tests, README and final check              | ⬜ Not started | —            |
 
@@ -344,16 +344,16 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 
 **Tasks**
 
-- [ ] 7.1 Confirm Tiptap's built-in history is **off** (Phase 2.3) and the Collaboration extension's Yjs undo is active.
-- [ ] 7.2 Add **Undo** and **Redo** buttons to the right end of the formatting toolbar, using the Collaboration extension's `undo()` / `redo()` commands. Disable them when there's nothing to undo or redo (`editor.can().undo()` / `can().redo()`).
-- [ ] 7.3 Shortcuts: Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, Ctrl/⌘+Y. These come from the extension, so check them.
-- [ ] 7.4 Viewers: no undo or redo buttons.
+- [x] 7.1 Confirm Tiptap's built-in history is **off** (Phase 2.3) and the Collaboration extension's Yjs undo is active.
+- [x] 7.2 Add **Undo** and **Redo** buttons to the right end of the formatting toolbar, using the Collaboration extension's `undo()` / `redo()` commands. Disable them when there's nothing to undo or redo (`editor.can().undo()` / `can().redo()`).
+- [x] 7.3 Shortcuts: Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, Ctrl/⌘+Y. These come from the extension, so check them.
+- [x] 7.4 Viewers: no undo or redo buttons.
 
 **Done when**
 
-- [ ] Alice and Bob type in the same paragraph. Alice's undo removes only Alice's words.
-- [ ] Undo and redo sync to the other window like normal edits.
-- [ ] Undo works naturally (word or phrase chunks, not one letter at a time).
+- [x] Alice and Bob type in the same paragraph. Alice's undo removes only Alice's words.
+- [x] Undo and redo sync to the other window like normal edits.
+- [x] Undo works naturally (word or phrase chunks, not one letter at a time).
 
 ---
 
@@ -439,3 +439,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-19 – Phase 4 complete – CollaborationCaret with shared name/color logic, 2px caret + label + 20% selection, Avatars reused, presence cleared on unload (≈220 ms) – y-tiptap's position-migration map is the only non-content Y type; it holds no user/cursor data
 - 2026-10-19 – Phase 5 complete – viewer mode (not editable, no toolbar, View only), edit/view/reset links and join redirect verified for documents, server drops viewer writes, leave works, board sharing unchanged – known limitation: a viewer's DevTools-forced local edit syncs if they're later upgraded to editor (same as boards; see decisions.md)
 - 2026-10-19 – Phase 6 complete – IndexedDB + show-on-first-load already shared via connectItem/useConnectionStatus; OfflineBanner and useBackOnlineToast extracted and reused; offline merge, server-down reload, logout cleanup verified – browser-offline reload still needs a service worker (out of scope, same as boards)
+- 2026-10-19 – Phase 7 complete – Collaboration's Yjs undo (own changes only), Undo/Redo toolbar buttons with disabled states, Mod-Z/Mod-Y/Shift-Mod-Z verified, per-person undo of text and formatting syncs, phrase-sized steps

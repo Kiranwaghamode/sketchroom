@@ -8,6 +8,8 @@ import {
   ItalicIcon,
   ListIcon,
   ListOrderedIcon,
+  Redo2Icon,
+  Undo2Icon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,15 +83,40 @@ function shortcut(keys: string[]) {
   return "⌘" + keys.map((k) => symbols[k] ?? k).join("");
 }
 
-/** The slim formatting row under the top bar. */
+/**
+ * Undo/redo come from the Collaboration extension (a Yjs UndoManager that only
+ * tracks this editor's own changes), not Tiptap's history, which is turned off.
+ */
+const HISTORY = [
+  {
+    label: "Undo",
+    keys: ["Z"],
+    icon: Undo2Icon,
+    can: (e: Editor) => e.can().undo(),
+    run: (e: Editor) => e.chain().focus().undo().run(),
+  },
+  {
+    label: "Redo",
+    keys: ["Shift", "Z"],
+    icon: Redo2Icon,
+    can: (e: Editor) => e.can().redo(),
+    run: (e: Editor) => e.chain().focus().redo().run(),
+  },
+];
+
+/** The slim formatting row under the top bar. Viewers don't get it at all. */
 export function DocToolbar({ editor }: { editor: Editor | null }) {
-  // Re-renders only when an active state changes, not on every keystroke.
-  const active = useEditorState({
+  // Re-renders only when one of these values changes (deep comparison), not on
+  // every keystroke.
+  const state = useEditorState({
     editor,
-    selector: ({ editor }) =>
-      editor ? FORMATS.map((f) => f.isActive(editor)).join() : "",
+    selector: ({ editor }) => ({
+      active: editor ? FORMATS.map((f) => f.isActive(editor)) : [],
+      enabled: editor ? HISTORY.map((h) => h.can(editor)) : [],
+    }),
   });
-  const isActive = active?.split(",").map((v) => v === "true") ?? [];
+  const isActive = state?.active ?? [];
+  const enabled = state?.enabled ?? [];
 
   return (
     <div className="flex h-10 shrink-0 items-center justify-center gap-0.5 border-b bg-background px-2">
@@ -128,6 +155,37 @@ export function DocToolbar({ editor }: { editor: Editor | null }) {
             })}
           </div>
         ))}
+      {editor && (
+        <div className="flex items-center gap-0.5">
+          <div className="mx-1.5 h-5 w-px bg-border" />
+          {HISTORY.map((action, i) => {
+            const Icon = action.icon;
+            return (
+              <Tooltip key={action.label}>
+                {/* A disabled button gets no hover events, so the span is the trigger. */}
+                <TooltipTrigger render={<span tabIndex={-1} />}>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={action.label}
+                    disabled={!enabled[i]}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => action.run(editor)}
+                  >
+                    <Icon />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {action.label}{" "}
+                  <span className="ml-1 opacity-60">
+                    {shortcut(action.keys)}
+                  </span>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

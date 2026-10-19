@@ -293,3 +293,11 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **What:** nothing document-specific was needed for syncing. `connectItem` attaches y-indexeddb (prefix `whiteboard-board-`) to every item, `useConnectionStatus` already shows the content when **either** IndexedDB or the server has loaded, and logout's `clearLocalItems` deletes every database with that prefix. The offline banner and the "Back online – changes synced" toast moved from `BoardClient` into `components/shared/offline.tsx` (`OfflineBanner`, `useBackOnlineToast`), with the same markup and logic, and both pages use them.
 
 **Verified:** with A's browser offline, A and B typed in the same paragraph. After reconnecting, both windows had identical text containing both sentences, and A got the banner and then the toast. With the sync server stopped, A typed, reloaded, and the text came back from IndexedDB. Once the server was back, it reached B. On reopening, the content appears before `provider.synced` is true (served from IndexedDB). After logout, the document's IndexedDB database is gone. As recorded for boards in Phase 7, a reload with the *browser itself* offline can't load the page without a service worker, which is out of scope.
+
+---
+
+## 2026-10-19 – Undo and redo in documents (PLAN2 Phase 7)
+
+**What:** StarterKit's `undoRedo` stays off (Phase 2). The Collaboration extension's Yjs UndoManager provides `undo`/`redo` and binds `Mod-z`, `Mod-y` and `Shift-Mod-z`. It only tracks transactions from this editor's own sync plugin, so remote changes are never undone, and it merges edits less than 500 ms apart (Yjs's default `captureTimeout`) into one step. The toolbar's Undo/Redo buttons sit at the right end, read `editor.can().undo()`/`redo()` through the same `useEditorState` selector as the format buttons (deep-compared, so they re-render only when something changes), and are hidden for viewers along with the rest of the toolbar.
+
+**Verified:** Alice typed, Bob typed into the same paragraph, and Alice typed again. Alice's two undos removed exactly her two phrases, Bob's text stayed, and both windows matched after each step. Ctrl+Y and Ctrl+Shift+Z redid them and synced, and the buttons disable when their stack is empty. Bob's undo of his bold removed only the bold. A phrase typed in one burst undoes in one step.
