@@ -5,9 +5,9 @@ import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import { Placeholder } from "@tiptap/extensions";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import { yUndoPluginKey } from "@tiptap/y-tiptap";
 import type * as Y from "yjs";
+import { documentStarterKit } from "@/lib/doc-extensions";
 import type { PresenceUser } from "@/lib/presence";
 import { RESTORE_ORIGIN } from "@/lib/yjs/doc-restore";
 import { DOC_FIELD } from "@/lib/yjs/doc-schema";
@@ -40,23 +40,7 @@ export function DocEditor({ doc, provider, user, readOnly, onReady }: Props) {
       editable: !readOnly,
       autofocus: !readOnly,
       extensions: [
-        StarterKit.configure({
-          heading: { levels: [1, 2] },
-          // Collaboration brings its own Yjs undo, so Tiptap's history must be off.
-          undoRedo: false,
-          // Not in this MVP (PLAN2 section 3).
-          blockquote: false,
-          code: false,
-          codeBlock: false,
-          horizontalRule: false,
-          strike: false,
-          link: false,
-          underline: false,
-          // Gap cursors only matter for non-text blocks, which we don't have. The
-          // trailing node would add an empty paragraph on every client independently.
-          gapcursor: false,
-          trailingNode: false,
-        }),
+        documentStarterKit,
         Collaboration.configure({ document: doc, field: DOC_FIELD }),
         // Other people's carets and selections travel through awareness (never
         // the Y.Doc). It also publishes `user`, which the Avatars component reads.

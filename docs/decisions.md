@@ -262,7 +262,7 @@ After installing packages while `next dev` was stopped, the restarted dev server
 
 **What:** `connectBoard`/`clearLocalBoards` were renamed to `connectItem`/`clearLocalItems`, with no behavior change. Documents connect to the same Hocuspocus server with the room name = item id, and get the same 5-minute JWT from `/api/ws-token` (whose query parameter and claim are still called `boardId`). The sync server's auth and persistence weren't changed: neither looks at the item's kind. `DocClient` copies `BoardClient`'s lifecycle: one Y.Doc + provider per page, created in an effect and destroyed on unmount, and the editor is created only once the content has loaded.
 
-**Verified:** two users typing in the same paragraph at the same time (characters 35–40 ms apart) end with identical documents, every character present once, and each person's words contiguous (Yjs anchors each insert to the author's previous character). Bold, headings and lists sync both ways. Reloading twice doesn't duplicate anything. After every tab closed and the sync server restarted, a fresh browser loaded the exact same content from Postgres, and `updatedAt` moves forward when the server saves.
+**Verified:** two users typing in the same paragraph at the same time (characters 35–40 ms apart) end with identical documents and every character present exactly once. (Correction from Phase 9: when both carets sit at the _identical_ position, the first character one person types can land after the rest of their phrase. See "Two carets at the identical position" below.) Bold, headings and lists sync both ways. Reloading twice doesn't duplicate anything. After every tab closed and the sync server restarted, a fresh browser loaded the exact same content from Postgres, and `updatedAt` moves forward when the server saves.
 
 ---
 
@@ -317,3 +317,35 @@ When the editor is created, `RESTORE_ORIGIN` is added to its Yjs UndoManager (`y
 **Why replace the fragment instead of overwriting the database:** a CRDT merges by adding history and never forgets it. If `Board.state` were overwritten with the old bytes, every connected or offline client would still hold the newer content, see it as "missing" on the server, and send it right back, so the document would snap back to its current state. Replacing the content as a new forward edit is the only restore that sticks, and it syncs to everyone like normal typing. The blocks are replaced wholesale instead of diffed (as boards do), because text structure has no stable ids to diff by, and one transaction keeps it a single, atomic step.
 
 **Verified:** saved "v1", replaced most of the text from two windows, and restored. Both windows matched v1 exactly and still did 4.5 s later, and the editor kept focus. "Before restore" appeared and restoring it brought back the pre-restore text in both windows. Ctrl+Z right after a restore reverted it, and the undo synced. Board history (save and restore) behaves as before, with no "Before restore" entry. `lib/yjs/doc-restore.test.ts` (8 tests) covers headings, both list kinds, bold and italic, the single `RESTORE_ORIGIN` transaction, syncing and a stale client reconnecting, one-step undo, the "Before restore" save (its state is the pre-restore content, and it can itself be restored), and aborting when that save fails.
+
+---
+
+## 2026-10-19 – Known limitation: two carets at the identical position (PLAN2 Phase 9)
+
+**What we saw:** when two people type at **exactly the same caret position** at the same moment, both windows always end with identical text and every character present exactly once. But the first one or two characters one person typed can land after the rest of their phrase. For example, `" from Alice"` and `" from Bob"` typed at the same spot gave `"…from Bobfrom Alice "` (Alice's leading space moved to the end) or, rarely, `"…from Bobrom Alicef "`. It happened at every typing speed tried (30–200 ms per key), so it's not a test-timing artifact.
+
+**Cause (as far as we can tell):** it isn't Yjs merging. A pure Yjs insert anchors each character to the author's previous one, and the document convergence tests stay word-intact. It comes from the y-tiptap 3.0.10 binding restoring the local caret after the other person's first characters arrive at the same spot. With the carets anywhere else, even in the same paragraph, words stay intact (verified, and covered by the e2e test).
+
+**Decision:** accepted for the MVP. Nothing is lost or duplicated, the documents converge, and it needs two people typing at the same character offset at the same time. Fixing it would mean patching the third-party binding. Revisit if y-tiptap changes its caret restoration.
+
+---
+
+## 2026-10-19 – Where documents reuse board code (PLAN2, from the Phase 0 audit)
+
+Documents add a page and an editor. Everything else is the board's code, generalized in small steps:
+
+| Piece                               | Where                                                  | Change for documents                                          |
+| ----------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------- |
+| Access check                        | `lib/access.ts` `getItemRole`                          | Renamed from `getBoardRole`; kind-agnostic                    |
+| Connection + offline copy           | `lib/yjs/provider.ts` `connectItem`, `clearLocalItems` | Renamed; same IndexedDB prefix                                |
+| Connection status                   | `lib/yjs/hooks.ts` `useConnectionStatus`               | None                                                          |
+| Sync token                          | `app/api/ws-token`                                     | None (query parameter and claim still named `boardId`)        |
+| Sync server auth + persistence      | `apps/sync/src/auth.ts`, `persistence.ts`              | None                                                          |
+| Share links, join page              | `app/actions/share.ts`, `app/join/[token]`             | Join redirects by `kind`                                      |
+| Versions                            | `app/actions/versions.ts`                              | None                                                          |
+| Top bar, Share and History dialogs  | `components/board/*`                                   | `kind` prop for wording; History takes a `restore()` function |
+| Avatars, user color                 | `components/board/Avatars.tsx`, `lib/presence.ts`      | None                                                          |
+| Offline banner, "Back online" toast | `components/shared/offline.tsx`                        | Moved out of `BoardClient`                                    |
+| Dashboard                           | `app/dashboard`, `components/dashboard/*`              | New dropdown, icons, link by `kind`                           |
+
+Document-only code: `app/doc/[id]`, `components/doc/*` (client, editor, toolbar), `lib/doc-extensions.ts`, `lib/yjs/doc-schema.ts`, `lib/yjs/doc-restore.ts`.

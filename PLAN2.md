@@ -40,7 +40,7 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 8 done. Next: Phase 9.
+**Current status:** Phase 9 in progress. Done: 9.1, 9.4, 9.6, 9.7. Written but not yet run: 9.2 (e2e test; the dev server was stopped for low memory). 9.3 local CI steps pass; e2e + CI run pending. Next: run e2e, then 9.5 deploy (needs the user's hosting accounts).
 
 **Overall progress:** 9 / 10 phases complete (90%)
 
@@ -55,7 +55,7 @@
 | 6   | Offline support                            | ✅ Done        | 2026-10-19   |
 | 7   | Undo and redo                              | ✅ Done        | 2026-10-19   |
 | 8   | Version history (save and restore)         | ✅ Done        | 2026-10-19   |
-| 9   | Tests, README and final check              | ⬜ Not started | —            |
+| 9   | Tests, README and final check              | 🔄 In progress | —            |
 
 Status values: `⬜ Not started` · `🔄 In progress` · `✅ Done`
 
@@ -389,7 +389,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 
 **Tasks**
 
-- [ ] 9.1 **Convergence test (vitest):** two Y.Docs, each inserting and deleting text at random positions in a `Y.XmlFragment` (or `Y.Text` inside it). Exchange updates in random order (including duplicates) and check that both docs end up with the same `toString()`. Run with a few random seeds.
+- [x] 9.1 **Convergence test (vitest):** two Y.Docs, each inserting and deleting text at random positions in a `Y.XmlFragment` (or `Y.Text` inside it). Exchange updates in random order (including duplicates) and check that both docs end up with the same `toString()`. Run with a few random seeds.
 - [ ] 9.2 **Playwright end-to-end test** (`e2e/docs-collab.spec.ts`) with two browser contexts, two seeded users, one shared document:
   - User A types "Hello" → user B sees "Hello".
   - Both type at the same time in the same paragraph → both see the same final text containing both inputs.
@@ -397,10 +397,10 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
   - `contextA.setOffline(true)`, A types a sentence, `setOffline(false)` → B sees it.
   - A viewer (view link) can't type.
 - [ ] 9.3 Run the **whole** test suite (boards + documents) locally and in CI.
-- [ ] 9.4 Seed a demo document for the demo user, with a heading, a short paragraph and a list.
+- [x] 9.4 Seed a demo document for the demo user, with a heading, a short paragraph and a list.
 - [ ] 9.5 Deploy (same services as before; no new infrastructure). Check that both boards and documents work in production.
-- [ ] 9.6 **README:** add "Collaborative documents" to the feature list, a short "How document sync works" section (Tiptap → Yjs XmlFragment → Hocuspocus → Postgres; character-level merging; carets via awareness), and the new packages to the tech stack. Leave a placeholder for a GIF of two people typing together.
-- [ ] 9.7 Delete `docs/docs-feature-audit.md` or move its useful parts into `docs/decisions.md`.
+- [x] 9.6 **README:** add "Collaborative documents" to the feature list, a short "How document sync works" section (Tiptap → Yjs XmlFragment → Hocuspocus → Postgres; character-level merging; carets via awareness), and the new packages to the tech stack. Leave a placeholder for a GIF of two people typing together.
+- [x] 9.7 Delete `docs/docs-feature-audit.md` or move its useful parts into `docs/decisions.md`.
 
 **Done when**
 

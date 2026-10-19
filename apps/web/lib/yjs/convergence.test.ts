@@ -2,17 +2,7 @@ import { describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createShape, deleteShapes, updateShape } from "./mutations";
 import { createBoardDoc, getOrder, type NewShape } from "./schema";
-
-/** Small deterministic PRNG (mulberry32), so failures are reproducible by seed. */
-function random(seed: number) {
-  let a = seed;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+import { random, shuffle } from "./test-utils";
 
 const COLORS = ["#1e1e1e", "#e03131", "#1971c2", "#2f9e44"] as const;
 
@@ -39,15 +29,6 @@ function randomEdit(doc: Y.Doc, rand: () => number) {
   } else {
     deleteShapes(doc, [pick()]);
   }
-}
-
-function shuffle<T>(items: T[], rand: () => number): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [copy[i], copy[j]] = [copy[j]!, copy[i]!];
-  }
-  return copy;
 }
 
 describe("convergence", () => {
