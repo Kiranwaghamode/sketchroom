@@ -43,6 +43,27 @@ const CLICK_DISTANCE = 4; // screen px: below this, a drag counts as a click
 const MOVE_WRITE_INTERVAL = 30; // ms between Y.Doc writes while dragging
 const CURSOR_INTERVAL = 50; // ms between cursor (awareness) updates
 const ACCENT = "#1971c2";
+const MIN_FONT_SIZE = 8;
+const MAX_FONT_SIZE = 400;
+const MIN_TEXT_WIDTH = 20;
+const ALL_ANCHORS = [
+  "top-left",
+  "top-center",
+  "top-right",
+  "middle-right",
+  "middle-left",
+  "bottom-left",
+  "bottom-center",
+  "bottom-right",
+];
+const TEXT_ANCHORS = [
+  "top-left",
+  "top-right",
+  "middle-left",
+  "middle-right",
+  "bottom-left",
+  "bottom-right",
+];
 
 type Gesture =
   | { kind: "pan"; startScreen: Point; startCamera: Camera }
@@ -120,6 +141,7 @@ export default function Canvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
+  const activeAnchorRef = useRef<string | null>(null);
   const gestureRef = useRef<Gesture | null>(null);
   const spaceRef = useRef(false);
   const cursorRef = useRef<{
@@ -294,8 +316,13 @@ export default function Canvas({
     );
     transformer.nodes(nodes);
     // Pen strokes can be moved but not resized.
-    const hasPen = selectedIds.some((id) => readShape(doc, id)?.type === "pen");
-    transformer.resizeEnabled(!hasPen);
+    const types = selectedIds.map((id) => readShape(doc, id)?.type);
+    transformer.resizeEnabled(!types.includes("pen"));
+    // Text only: corners scale the text (font size) proportionally, the side
+    // handles change the wrapping width. Top/bottom handles make no sense for text.
+    const onlyText = types.length > 0 && types.every((t) => t === "text");
+    transformer.keepRatio(onlyText);
+    transformer.enabledAnchors(onlyText ? TEXT_ANCHORS : ALL_ANCHORS);
     transformer.getLayer()?.batchDraw();
   }, [doc, selectedIds, shapeIds, editingId]);
 
@@ -610,12 +637,45 @@ export default function Canvas({
   // ---- Resize (Transformer) ---------------------------------------------------
   function onTransformEnd() {
     const transformer = transformerRef.current!;
+    const anchor = activeAnchorRef.current ?? "";
+    const isCorner = !anchor.startsWith("middle") && !anchor.endsWith("center");
     const updates = transformer.nodes().flatMap((node) => {
       const shape = readShape(doc, node.id());
       if (!shape || shape.type === "pen") return [];
-      const width = round(Math.max(4, shape.width * node.scaleX()));
-      const height = round(Math.max(4, shape.height * node.scaleY()));
+      const scaleX = node.scaleX();
+      const scaleY = node.scaleY();
       node.scale({ x: 1, y: 1 });
+
+      if (shape.type === "text") {
+        // Corner drag = make the text bigger/smaller. Side drag = rewrap only.
+        const fontSize = isCorner
+          ? clamp(
+              Math.round(shape.fontSize * scaleY),
+              MIN_FONT_SIZE,
+              MAX_FONT_SIZE,
+            )
+          : shape.fontSize;
+        const width = round(Math.max(MIN_TEXT_WIDTH, shape.width * scaleX));
+        // Measure the real height of the re-wrapped text with Konva's own layout.
+        const textNode = (node as Konva.Group).findOne<Konva.Text>("Text");
+        textNode?.setAttrs({ width, fontSize });
+        const height = round(textNode?.height() ?? shape.height * scaleY);
+        return [
+          {
+            id: shape.id,
+            patch: {
+              x: round(node.x()),
+              y: round(node.y()),
+              width,
+              height,
+              fontSize,
+            },
+          },
+        ];
+      }
+
+      const width = round(Math.max(4, shape.width * scaleX));
+      const height = round(Math.max(4, shape.height * scaleY));
       return [
         {
           id: shape.id,
@@ -720,7 +780,11 @@ export default function Canvas({
                 ? oldBox
                 : newBox
             }
-            onTransformStart={() => beginGesture(undoManager)}
+            onTransformStart={() => {
+              activeAnchorRef.current =
+                transformerRef.current?.getActiveAnchor() ?? null;
+              beginGesture(undoManager);
+            }}
             onTransformEnd={onTransformEnd}
           />
         </Layer>

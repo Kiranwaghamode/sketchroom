@@ -223,3 +223,11 @@ After installing packages while `next dev` was stopped, the restarted dev server
 - "Try the demo" is a server action that signs in as the demo user with `DEMO_PASSWORD` from the server environment, so the password never reaches the browser.
 
 **Why the e2e test reads `window.doc`:** Asserting on the Y.Doc is exact and fast, where reading pixels from a canvas is brittle. `window.doc` is only exposed in development, so the test runs against the dev server.
+
+---
+
+## 2026-10-19 – Resizing text changes its font size
+
+**What:** With only text selected, the Transformer keeps the aspect ratio and shows corner and left/right handles (no top/bottom). Dragging a **corner** scales the text: `fontSize` (clamped to 8–400) and `width` scale together. Dragging a **side** handle changes only the wrapping `width`. In both cases `height` is re-measured from Konva's own text layout, so the selection box fits the wrapped text. In a mixed selection, text scales its font by the vertical factor.
+
+**Why:** Previously resizing a text box only changed its stored width/height, and the font size snapped back on release, which users read as "resizing text does nothing". Corner = scale and side = rewrap is the convention in most whiteboard tools.
