@@ -2,13 +2,16 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import { clearDocument, IndexeddbPersistence } from "y-indexeddb";
 import type * as Y from "yjs";
 
-/** Prefix for this app's IndexedDB databases (one per board), so logout can find them. */
+/**
+ * Prefix for this app's IndexedDB databases (one per board or document), so logout
+ * can find them. Documents use the same prefix: item ids are unique across kinds.
+ */
 const LOCAL_DB_PREFIX = "whiteboard-board-";
 
 /** Fetches a fresh 5-minute sync token. Called on every (re)connect. */
-async function fetchToken(boardId: string): Promise<string> {
+async function fetchToken(itemId: string): Promise<string> {
   const response = await fetch(
-    `/api/ws-token?boardId=${encodeURIComponent(boardId)}`,
+    `/api/ws-token?boardId=${encodeURIComponent(itemId)}`,
     {
       cache: "no-store",
     },
@@ -20,21 +23,22 @@ async function fetchToken(boardId: string): Promise<string> {
 }
 
 /**
- * Connects a board's Y.Doc to the sync server (room name = board id) and keeps a
- * copy in IndexedDB, so the board opens instantly and editing works offline.
+ * Connects an item's Y.Doc (a board or a document) to the sync server (room
+ * name = item id) and keeps a copy in IndexedDB, so it opens instantly and
+ * editing works offline.
  * Nothing special is needed to merge offline edits: on reconnect, the Yjs sync
  * handshake exchanges whatever each side is missing.
  */
-export function connectBoard(boardId: string, doc: Y.Doc) {
+export function connectItem(itemId: string, doc: Y.Doc) {
   const url = process.env["NEXT_PUBLIC_SYNC_URL"];
   if (!url) throw new Error("NEXT_PUBLIC_SYNC_URL is not set");
 
-  const local = new IndexeddbPersistence(LOCAL_DB_PREFIX + boardId, doc);
+  const local = new IndexeddbPersistence(LOCAL_DB_PREFIX + itemId, doc);
   const provider = new HocuspocusProvider({
     url,
-    name: boardId,
+    name: itemId,
     document: doc,
-    token: () => fetchToken(boardId),
+    token: () => fetchToken(itemId),
   });
 
   // A WebSocket can stay "open" for a while after the network drops. Use the
@@ -56,8 +60,8 @@ export function connectBoard(boardId: string, doc: Y.Doc) {
   };
 }
 
-/** Deletes every board copy this browser keeps offline. Called on logout. */
-export async function clearLocalBoards() {
+/** Deletes every board and document copy this browser keeps offline. Called on logout. */
+export async function clearLocalItems() {
   const databases = await indexedDB.databases?.();
   await Promise.all(
     (databases ?? [])

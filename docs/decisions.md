@@ -255,3 +255,11 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **Toolbar:** `useEditorState` with a selector that returns the six active states as one string, so the toolbar re-renders only when an active state changes, not on every keystroke. Buttons `preventDefault` on mousedown so the text selection stays where it is.
 
 **Testing note:** Automated tests must pause briefly (about 100 ms) between a caret-moving key like `End` and the next edit. ProseMirror picks up native selection changes asynchronously, so `End` immediately followed by `Enter` (faster than any person types) still acts on the old selection.
+
+---
+
+## 2026-10-19 – Document sync reuses the board connection unchanged (PLAN2 Phase 3)
+
+**What:** `connectBoard`/`clearLocalBoards` were renamed to `connectItem`/`clearLocalItems`, with no behavior change. Documents connect to the same Hocuspocus server with the room name = item id, and get the same 5-minute JWT from `/api/ws-token` (whose query parameter and claim are still called `boardId`). The sync server's auth and persistence weren't changed: neither looks at the item's kind. `DocClient` copies `BoardClient`'s lifecycle: one Y.Doc + provider per page, created in an effect and destroyed on unmount, and the editor is created only once the content has loaded.
+
+**Verified:** two users typing in the same paragraph at the same time (characters 35–40 ms apart) end with identical documents, every character present once, and each person's words contiguous (Yjs anchors each insert to the author's previous character). Bold, headings and lists sync both ways. Reloading twice doesn't duplicate anything. After every tab closed and the sync server restarted, a fresh browser loaded the exact same content from Postgres, and `updatedAt` moves forward when the server saves.

@@ -15,14 +15,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
 import { initials } from "@/lib/initials";
-import { clearLocalBoards } from "@/lib/yjs/provider";
+import { clearLocalItems } from "@/lib/yjs/provider";
 
 export function UserMenu({ name, email }: { name: string; email: string }) {
   const router = useRouter();
 
   async function logOut() {
-    // Remove offline copies of boards so the next person on this computer can't see them.
-    await clearLocalBoards().catch(() => {});
+    // Remove offline copies of boards and documents so the next person on this
+    // computer can't see them.
+    await clearLocalItems().catch(() => {});
     await authClient.signOut();
     router.replace("/login");
     router.refresh();

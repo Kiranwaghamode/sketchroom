@@ -1,10 +1,14 @@
 "use client";
 
+import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { Role } from "@whiteboard/db";
 import { useEffect, useState } from "react";
+import type { IndexeddbPersistence } from "y-indexeddb";
 import type * as Y from "yjs";
 import { TopBar } from "@/components/board/TopBar";
 import { createDocumentYDoc } from "@/lib/yjs/doc-schema";
+import { useConnectionStatus } from "@/lib/yjs/hooks";
+import { connectItem } from "@/lib/yjs/provider";
 import { DocEditor } from "./DocEditor";
 
 type Props = {
@@ -15,24 +19,68 @@ type Props = {
   role: Role;
 };
 
-export function DocClient({ docId, title, role }: Props) {
-  const [doc, setDoc] = useState<Y.Doc | null>(null);
+type Session = {
+  doc: Y.Doc;
+  provider: HocuspocusProvider;
+  local: IndexeddbPersistence;
+};
 
-  // One Y.Doc per document page, created in an effect and destroyed on unmount.
-  // In Strict Mode the effect runs twice, and the first doc is destroyed before
-  // the second is created.
+export function DocClient(props: Props) {
+  const { docId } = props;
+  const [session, setSession] = useState<Session | null>(null);
+
+  // One Y.Doc + provider per document, created in an effect and destroyed on
+  // unmount. In Strict Mode the effect runs twice, and the first pair is fully
+  // destroyed before the second is created (same as BoardClient).
   useEffect(() => {
     const { doc } = createDocumentYDoc();
-    // The Y.Doc is an external resource created here, so it's stored from the effect.
+    const { provider, local, cleanup } = connectItem(docId, doc);
+    // The connection is an external resource created here, so its handle has to be
+    // stored from the effect; creating it during render would leak sockets.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDoc(doc);
+    setSession({ doc, provider, local });
     if (process.env.NODE_ENV !== "production") {
       // For debugging in DevTools: doc.getXmlFragment("content").toString()
-      Object.assign(window, { doc });
+      Object.assign(window, { doc, provider });
     }
-    return () => doc.destroy();
+    return () => {
+      cleanup();
+      doc.destroy();
+    };
   }, [docId]);
 
+  if (!session) return <DocLayout {...props} status="connecting" />;
+  return <ConnectedDoc {...props} session={session} />;
+}
+
+function ConnectedDoc({ session, ...props }: Props & { session: Session }) {
+  const { status, loaded, saving } = useConnectionStatus(
+    session.provider,
+    session.local,
+  );
+  return (
+    <DocLayout
+      {...props}
+      status={status}
+      saving={saving}
+      session={loaded ? session : undefined}
+    />
+  );
+}
+
+function DocLayout({
+  docId,
+  title,
+  role,
+  status,
+  saving,
+  session,
+}: Props & {
+  status: React.ComponentProps<typeof TopBar>["status"];
+  saving?: boolean;
+  /** Set once the content has loaded (from the server or this device). */
+  session?: Session;
+}) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <TopBar
@@ -41,9 +89,17 @@ export function DocClient({ docId, title, role }: Props) {
         title={title}
         isOwner={role === "OWNER"}
         readOnly={role === "VIEWER"}
-        status="connecting"
+        status={status}
+        saving={session ? saving : undefined}
       />
-      {doc && <DocEditor doc={doc} />}
+      {/* The editor is created only after the Y.Doc has its content. */}
+      {session ? (
+        <DocEditor doc={session.doc} />
+      ) : (
+        <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+          Loading document…
+        </div>
+      )}
     </div>
   );
 }

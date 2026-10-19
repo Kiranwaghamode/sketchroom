@@ -10,7 +10,7 @@ import type * as Y from "yjs";
 import { Cursors } from "@/components/canvas/Cursors";
 import { userColor } from "@/lib/presence";
 import { useConnectionStatus } from "@/lib/yjs/hooks";
-import { connectBoard } from "@/lib/yjs/provider";
+import { connectItem } from "@/lib/yjs/provider";
 import { createBoardDoc } from "@/lib/yjs/schema";
 import { createUndoManager } from "@/lib/yjs/undo";
 import { useEditor } from "@/stores/editor";
@@ -48,7 +48,7 @@ export function BoardClient(props: Props) {
   // the second is created, so there's never more than one live connection.
   useEffect(() => {
     const { doc } = createBoardDoc();
-    const { provider, local, cleanup } = connectBoard(boardId, doc);
+    const { provider, local, cleanup } = connectItem(boardId, doc);
     // One undo manager per board session; viewers can't edit, so they get none.
     const undoManager = role === "VIEWER" ? undefined : createUndoManager(doc);
     // The connection is an external resource created here, so its handle has to be

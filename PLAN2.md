@@ -40,16 +40,16 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 2 done. Next: Phase 3.
+**Current status:** Phase 3 done. Next: Phase 4.
 
-**Overall progress:** 3 / 10 phases complete (30%)
+**Overall progress:** 4 / 10 phases complete (40%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
 | 0 | Audit the existing project | ✅ Done | 2026-10-19 |
 | 1 | Data model and dashboard | ✅ Done | 2026-10-19 |
 | 2 | Document editor (single user, data in Yjs) | ✅ Done | 2026-10-19 |
-| 3 | Real-time sync | ⬜ Not started | — |
+| 3 | Real-time sync | ✅ Done | 2026-10-19 |
 | 4 | Live cursors and who's online | ⬜ Not started | — |
 | 5 | Permissions and share links | ⬜ Not started | — |
 | 6 | Offline support | ⬜ Not started | — |
@@ -254,20 +254,20 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** two windows on the same document see each other's typing instantly, with no lost or duplicated text.
 
 **Tasks**
-- [ ] 3.1 Generalize the existing connection helper (for example, `connectBoard` → `connectItem(itemId, doc)`) so it works for documents. Boards must still use it unchanged. The room name stays the **item id**.
-- [ ] 3.2 Create the Y.Doc and provider **once** per document page in a client component (`DocClient`) and destroy both on unmount. Handle React Strict Mode running effects twice, the same way the board page does.
-- [ ] 3.3 Create the editor only **after** the Y.Doc exists. Show a light "Loading document…" until the first sync (Phase 6 changes this to show IndexedDB content first).
-- [ ] 3.4 **Sync server:** check that the existing persistence (fetch/store of `state`) and auth work for documents without changes. If the auth hook checks that the item is a board, update it to allow both kinds.
-- [ ] 3.5 `/api/ws-token`: make sure it issues tokens for documents too (using the generalized access check).
-- [ ] 3.6 Reuse the connection dot and "Saved"/"Saving…" indicator in the document top bar.
-- [ ] 3.7 Make sure `Board.updatedAt` (the item's `updatedAt`) changes when document content is saved, so the dashboard's "Edited …" stays correct.
+- [x] 3.1 Generalize the existing connection helper (for example, `connectBoard` → `connectItem(itemId, doc)`) so it works for documents. Boards must still use it unchanged. The room name stays the **item id**.
+- [x] 3.2 Create the Y.Doc and provider **once** per document page in a client component (`DocClient`) and destroy both on unmount. Handle React Strict Mode running effects twice, the same way the board page does.
+- [x] 3.3 Create the editor only **after** the Y.Doc exists. Show a light "Loading document…" until the first sync (Phase 6 changes this to show IndexedDB content first).
+- [x] 3.4 **Sync server:** check that the existing persistence (fetch/store of `state`) and auth work for documents without changes. If the auth hook checks that the item is a board, update it to allow both kinds.
+- [x] 3.5 `/api/ws-token`: make sure it issues tokens for documents too (using the generalized access check).
+- [x] 3.6 Reuse the connection dot and "Saved"/"Saving…" indicator in the document top bar.
+- [x] 3.7 Make sure `Board.updatedAt` (the item's `updatedAt`) changes when document content is saved, so the dashboard's "Edited …" stays correct.
 
 **Done when**
-- [ ] Two windows typing **in the same paragraph at the same time** both see the same final text, and no characters are lost.
-- [ ] Formatting changes (bold, headings, lists) sync both ways.
-- [ ] Close every tab, restart the sync server, and reopen the document: the content is still there.
-- [ ] Opening the document never duplicates its content.
-- [ ] Boards still sync as before.
+- [x] Two windows typing **in the same paragraph at the same time** both see the same final text, and no characters are lost.
+- [x] Formatting changes (bold, headings, lists) sync both ways.
+- [x] Close every tab, restart the sync server, and reopen the document: the content is still there.
+- [x] Opening the document never duplicates its content.
+- [x] Boards still sync as before.
 
 ---
 
@@ -415,3 +415,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-19 – Phase 0 complete – audit in docs/docs-feature-audit.md; Yjs + Hocuspocus confirmed; `kind` column chosen – baseline: 23 unit tests + 1 e2e pass (after re-seeding "Demo board")
 - 2026-10-19 – Phase 1 complete – ItemKind/kind column + migration, getItemRole, createDocument, New dropdown with icons, /doc/[id] placeholder, cross-kind 404s, join redirects by kind – leave for documents verified in Phase 5 (needs a shared doc)
 - 2026-10-19 – Phase 2 complete – Tiptap 3.32 editor bound to Y.XmlFragment "content", slim toolbar with active states and shortcut tooltips, markdown shortcuts verified, doc-schema tests – the existing dev-only Next "instant" validation message on /login and /dashboard is unrelated
+- 2026-10-19 – Phase 3 complete – connectItem/clearLocalItems, DocClient with provider + IndexedDB, status dot and Saved/Saving…, sync server unchanged – verified simultaneous typing, formatting sync, no duplication on reload, persistence across a sync-server restart
