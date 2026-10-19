@@ -115,6 +115,7 @@ function DocLayout({
           doc={session.doc}
           provider={session.provider}
           user={{ id: userId, name: userName, color: userColor(userId) }}
+          readOnly={role === "VIEWER"}
         />
       ) : (
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">

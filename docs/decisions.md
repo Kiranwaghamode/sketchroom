@@ -275,3 +275,13 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **Verified:** each window shows the other's caret with their name, and it moves as they type. A selection shows on the other screen in the selector's color at 20%. Both windows show 2 avatars, and closing a tab removes the caret and avatar in about 220 ms.
 
 **Testing notes:** (1) Next 16 keeps the previous route mounted but hidden, so the dashboard header's avatar stays in the DOM after a client-side navigation. Selectors that count elements need `:visible`. (2) Once, Turbopack didn't pick up a shell append to `globals.css` until the file was edited again. If new CSS seems to have no effect in development, check the served stylesheet first.
+
+---
+
+## 2026-10-19 – Viewers in documents (PLAN2 Phase 5)
+
+**What:** Viewers get `editable: false` in the editor, no formatting toolbar, no autofocus, and the existing "View only" badge. They still see carets and avatars, and their own presence shows to others. The share dialog, share actions, reset, and the join page are the board ones. The join page redirects by `kind`, and the dialog says "Anyone with the link can edit/view this document".
+
+**Verified:** a view link gives a read-only page where typing does nothing. A viewer writing straight into `window.doc` from DevTools changes only their own copy: the owner never receives it, and a fresh window loading from the server doesn't have it (Hocuspocus drops updates from `readOnly` connections). Reset links makes the old link show "This link is invalid or was reset." A new edit link upgrades the same person to editor. Leaving a document removes it from the dashboard, and the URL then returns 404. Board sharing is unchanged.
+
+**Known limitation (same as boards):** an edit a viewer forces into their local Y.Doc through DevTools stays in their IndexedDB copy. If that person is **later given edit access**, the next sync sends it like any other pending offline edit. This isn't a privilege escalation, because at that point they're allowed to write anything anyway, and it can't happen through the UI. A fix would be to not keep an offline copy for viewers, or to clear it when the role changes. Neither is in the plan, so neither is built.

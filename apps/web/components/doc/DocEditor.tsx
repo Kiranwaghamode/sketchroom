@@ -16,6 +16,11 @@ type Props = {
   provider: HocuspocusProvider;
   /** Me, as shown to others: same name and color as on boards. */
   user: PresenceUser;
+  /**
+   * Viewers can read but not type. The sync server's read-only connection is the
+   * real protection; this only makes the page behave accordingly.
+   */
+  readOnly: boolean;
 };
 
 /**
@@ -23,12 +28,13 @@ type Props = {
  * There's deliberately no `content` option, because it would insert the text
  * again on every load.
  */
-export function DocEditor({ doc, provider, user }: Props) {
+export function DocEditor({ doc, provider, user, readOnly }: Props) {
   const editor = useEditor(
     {
       // Render on the client only, so the server HTML can't mismatch (no hydration warnings).
       immediatelyRender: false,
-      autofocus: true,
+      editable: !readOnly,
+      autofocus: !readOnly,
       extensions: [
         StarterKit.configure({
           heading: { levels: [1, 2] },
@@ -66,12 +72,12 @@ export function DocEditor({ doc, provider, user }: Props) {
       },
     },
     // `user` is a new object on each render, so depend on its fields.
-    [doc, provider, user.id, user.name, user.color],
+    [doc, provider, user.id, user.name, user.color, readOnly],
   );
 
   return (
     <>
-      <DocToolbar editor={editor} />
+      {!readOnly && <DocToolbar editor={editor} />}
       <div className="flex-1 overflow-y-auto bg-muted/60">
         <div className="mx-auto min-h-full w-full max-w-[720px] border-x bg-background px-6 pt-12 pb-32 sm:px-12">
           <EditorContent editor={editor} />

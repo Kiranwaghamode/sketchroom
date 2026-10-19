@@ -40,9 +40,9 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 4 done. Next: Phase 5.
+**Current status:** Phase 5 done. Next: Phase 6.
 
-**Overall progress:** 5 / 10 phases complete (50%)
+**Overall progress:** 6 / 10 phases complete (60%)
 
 | # | Phase | Status | Completed on |
 |---|-------|--------|--------------|
@@ -51,7 +51,7 @@
 | 2 | Document editor (single user, data in Yjs) | ✅ Done | 2026-10-19 |
 | 3 | Real-time sync | ✅ Done | 2026-10-19 |
 | 4 | Live cursors and who's online | ✅ Done | 2026-10-19 |
-| 5 | Permissions and share links | ⬜ Not started | — |
+| 5 | Permissions and share links | ✅ Done | 2026-10-19 |
 | 6 | Offline support | ⬜ Not started | — |
 | 7 | Undo and redo | ⬜ Not started | — |
 | 8 | Version history (save and restore) | ⬜ Not started | — |
@@ -294,16 +294,16 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** sharing works for documents exactly as for boards, and viewers can't edit.
 
 **Tasks**
-- [ ] 5.1 Reuse the **Share** dialog for documents (wording: "Anyone with the link can edit / view this document").
-- [ ] 5.2 The `/join/[token]` page must redirect to `/doc/[id]` or `/board/[id]` depending on `kind`.
-- [ ] 5.3 **Viewer mode in the editor:** `editor.setEditable(false)`, hide the formatting toolbar, show the existing "View only" badge. The server read-only connection (existing auth hook) is the real protection.
-- [ ] 5.4 Viewers still see other people's carets and the online avatars.
+- [x] 5.1 Reuse the **Share** dialog for documents (wording: "Anyone with the link can edit / view this document").
+- [x] 5.2 The `/join/[token]` page must redirect to `/doc/[id]` or `/board/[id]` depending on `kind`.
+- [x] 5.3 **Viewer mode in the editor:** `editor.setEditable(false)`, hide the formatting toolbar, show the existing "View only" badge. The server read-only connection (existing auth hook) is the real protection.
+- [x] 5.4 Viewers still see other people's carets and the online avatars.
 
 **Done when**
-- [ ] An edit link opened by another user in a private window allows typing. A view link allows reading only.
-- [ ] A viewer's change made manually in DevTools doesn't reach other users or the database.
-- [ ] **Reset links** works for documents.
-- [ ] Board sharing still works as before.
+- [x] An edit link opened by another user in a private window allows typing. A view link allows reading only.
+- [x] A viewer's change made manually in DevTools doesn't reach other users or the database.
+- [x] **Reset links** works for documents.
+- [x] Board sharing still works as before.
 
 ---
 
@@ -417,3 +417,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-19 – Phase 2 complete – Tiptap 3.32 editor bound to Y.XmlFragment "content", slim toolbar with active states and shortcut tooltips, markdown shortcuts verified, doc-schema tests – the existing dev-only Next "instant" validation message on /login and /dashboard is unrelated
 - 2026-10-19 – Phase 3 complete – connectItem/clearLocalItems, DocClient with provider + IndexedDB, status dot and Saved/Saving…, sync server unchanged – verified simultaneous typing, formatting sync, no duplication on reload, persistence across a sync-server restart
 - 2026-10-19 – Phase 4 complete – CollaborationCaret with shared name/color logic, 2px caret + label + 20% selection, Avatars reused, presence cleared on unload (≈220 ms) – y-tiptap's position-migration map is the only non-content Y type; it holds no user/cursor data
+- 2026-10-19 – Phase 5 complete – viewer mode (not editable, no toolbar, View only), edit/view/reset links and join redirect verified for documents, server drops viewer writes, leave works, board sharing unchanged – known limitation: a viewer's DevTools-forced local edit syncs if they're later upgraded to editor (same as boards; see decisions.md)
