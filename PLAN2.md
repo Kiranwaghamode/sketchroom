@@ -40,7 +40,7 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 9 in progress. Done: 9.1, 9.2, 9.4, 9.6, 9.7. 9.3: whole suite passes locally (39 unit + 2 e2e; CI steps run locally); a CI run on GitHub needs a push. Next: 9.3 CI run and 9.5 deploy (need the user's go-ahead and hosting accounts).
+**Current status:** Phase 9 in progress. Done: 9.1–9.4, 9.6, 9.7 (CI green on GitHub for master and docs-feature; e2e runs locally, as for boards). Next: 9.5 deploy (needs the user's hosting accounts), then the production checks.
 
 **Overall progress:** 9 / 10 phases complete (90%)
 
@@ -396,7 +396,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
   - User B makes a word bold → user A sees it bold.
   - `contextA.setOffline(true)`, A types a sentence, `setOffline(false)` → B sees it.
   - A viewer (view link) can't type.
-- [ ] 9.3 Run the **whole** test suite (boards + documents) locally and in CI.
+- [x] 9.3 Run the **whole** test suite (boards + documents) locally and in CI.
 - [x] 9.4 Seed a demo document for the demo user, with a heading, a short paragraph and a list.
 - [ ] 9.5 Deploy (same services as before; no new infrastructure). Check that both boards and documents work in production.
 - [x] 9.6 **README:** add "Collaborative documents" to the feature list, a short "How document sync works" section (Tiptap → Yjs XmlFragment → Hocuspocus → Postgres; character-level merging; carets via awareness), and the new packages to the tech stack. Leave a placeholder for a GIF of two people typing together.
