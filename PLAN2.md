@@ -52,7 +52,7 @@
 | 3   | Real-time sync                             | ✅ Done        | 2026-10-19   |
 | 4   | Live cursors and who's online              | ✅ Done        | 2026-10-19   |
 | 5   | Permissions and share links                | ✅ Done        | 2026-10-19   |
-| 6   | Offline support                            | ⬜ Not started | —            |
+| 6   | Offline support                            | ✅ Done        | 2026-10-19   |
 | 7   | Undo and redo                              | ⬜ Not started | —            |
 | 8   | Version history (save and restore)         | ⬜ Not started | —            |
 | 9   | Tests, README and final check              | ⬜ Not started | —            |
