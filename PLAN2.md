@@ -40,22 +40,22 @@
 
 ## Progress Tracker
 
-**Current status:** Phase 5 done. Next: Phase 6.
+**Current status:** Phase 6 done. Next: Phase 7 (waiting for the user).
 
-**Overall progress:** 6 / 10 phases complete (60%)
+**Overall progress:** 7 / 10 phases complete (70%)
 
-| # | Phase | Status | Completed on |
-|---|-------|--------|--------------|
-| 0 | Audit the existing project | ✅ Done | 2026-10-19 |
-| 1 | Data model and dashboard | ✅ Done | 2026-10-19 |
-| 2 | Document editor (single user, data in Yjs) | ✅ Done | 2026-10-19 |
-| 3 | Real-time sync | ✅ Done | 2026-10-19 |
-| 4 | Live cursors and who's online | ✅ Done | 2026-10-19 |
-| 5 | Permissions and share links | ✅ Done | 2026-10-19 |
-| 6 | Offline support | ⬜ Not started | — |
-| 7 | Undo and redo | ⬜ Not started | — |
-| 8 | Version history (save and restore) | ⬜ Not started | — |
-| 9 | Tests, README and final check | ⬜ Not started | — |
+| #   | Phase                                      | Status         | Completed on |
+| --- | ------------------------------------------ | -------------- | ------------ |
+| 0   | Audit the existing project                 | ✅ Done        | 2026-10-19   |
+| 1   | Data model and dashboard                   | ✅ Done        | 2026-10-19   |
+| 2   | Document editor (single user, data in Yjs) | ✅ Done        | 2026-10-19   |
+| 3   | Real-time sync                             | ✅ Done        | 2026-10-19   |
+| 4   | Live cursors and who's online              | ✅ Done        | 2026-10-19   |
+| 5   | Permissions and share links                | ✅ Done        | 2026-10-19   |
+| 6   | Offline support                            | ⬜ Not started | —            |
+| 7   | Undo and redo                              | ⬜ Not started | —            |
+| 8   | Version history (save and restore)         | ⬜ Not started | —            |
+| 9   | Tests, README and final check              | ⬜ Not started | —            |
 
 Status values: `⬜ Not started` · `🔄 In progress` · `✅ Done`
 
@@ -66,7 +66,7 @@ Status values: `⬜ Not started` · `🔄 In progress` · `✅ Done`
 **What the user can do (the complete feature list for this MVP):**
 
 1. From the dashboard, create a **new document** next to new boards. Rename, delete or leave documents just like boards.
-2. Open a document and write with **basic formatting**: Heading 1, Heading 2, paragraph, **bold**, *italic*, bullet list, numbered list.
+2. Open a document and write with **basic formatting**: Heading 1, Heading 2, paragraph, **bold**, _italic_, bullet list, numbered list.
 3. Edit **at the same time** as other people. Everyone sees each other's typing instantly, and no text is ever lost or overwritten.
 4. See **other people's cursors and selections** in the text, labeled with their names, and **who is online**.
 5. Share a document with an **"Can edit"** or **"Can view"** link. Viewers can read but not type, and the server enforces this.
@@ -97,14 +97,14 @@ Next.js (App Router) · TypeScript · Tailwind + shadcn/ui · lucide-react · so
 
 ### 2.2 Add (only these)
 
-| Package | Purpose |
-|---------|---------|
-| `@tiptap/react` | The editor component and React hooks |
-| `@tiptap/pm` | ProseMirror dependencies required by Tiptap |
-| `@tiptap/starter-kit` | Headings, bold, italic, lists, paragraphs and markdown shortcuts. Turn off what isn't needed (see Phase 2) |
-| `@tiptap/extension-collaboration` | Connects the editor to a Yjs `Y.XmlFragment` (character-level merging and collaborative undo) |
-| Tiptap collaboration caret extension | Shows other users' cursors and selections with names. **Tiptap v3:** `@tiptap/extension-collaboration-caret`. **Tiptap v2:** `@tiptap/extension-collaboration-cursor` |
-| `@tiptap/extension-placeholder` (or the placeholder from `@tiptap/extensions` in v3) | "Start writing…" placeholder |
+| Package                                                                              | Purpose                                                                                                                                                               |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@tiptap/react`                                                                      | The editor component and React hooks                                                                                                                                  |
+| `@tiptap/pm`                                                                         | ProseMirror dependencies required by Tiptap                                                                                                                           |
+| `@tiptap/starter-kit`                                                                | Headings, bold, italic, lists, paragraphs and markdown shortcuts. Turn off what isn't needed (see Phase 2)                                                            |
+| `@tiptap/extension-collaboration`                                                    | Connects the editor to a Yjs `Y.XmlFragment` (character-level merging and collaborative undo)                                                                         |
+| Tiptap collaboration caret extension                                                 | Shows other users' cursors and selections with names. **Tiptap v3:** `@tiptap/extension-collaboration-caret`. **Tiptap v2:** `@tiptap/extension-collaboration-cursor` |
+| `@tiptap/extension-placeholder` (or the placeholder from `@tiptap/extensions` in v3) | "Start writing…" placeholder                                                                                                                                          |
 
 **Install all Tiptap packages at the same major version.** Also install any peer dependencies the Collaboration extension asks for in that version (for example a y-prosemirror / y-tiptap binding). Check its docs.
 
@@ -174,6 +174,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** understand the existing code before changing anything, and confirm the plan fits it.
 
 **Tasks**
+
 - [x] 0.1 Read the codebase and write `docs/docs-feature-audit.md`, listing:
   - the stack and versions actually installed (Next.js, yjs, Hocuspocus, Prisma, better-auth),
   - where each reusable piece lives: provider/connection setup, IndexedDB setup, WebSocket token route, sync server auth hook, persistence hook, access check (`getBoardRole` or equivalent), share links, join page, version save/restore, top bar, avatars, offline banner, connection status,
@@ -184,6 +185,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 - [x] 0.5 Run the existing tests and note the results, so later regressions are easy to spot.
 
 **Done when**
+
 - [x] `docs/docs-feature-audit.md` exists and the user has seen the summary.
 - [x] Existing tests pass (or existing failures are written down).
 
@@ -194,6 +196,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** documents exist in the database and can be created, listed, renamed, deleted and opened (empty page for now).
 
 **Tasks**
+
 - [x] 1.1 **Data model.** Preferred approach (use it unless the audit showed a clear reason not to):
   - Add an enum `ItemKind { BOARD DOC }` and a column `kind ItemKind @default(BOARD)` to the existing `Board` model, so members, share links, versions and the binary `state` column are **reused unchanged**.
   - Existing rows automatically become `BOARD`.
@@ -215,6 +218,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 - [x] 1.7 The `/doc/[id]` page renders the reused top bar with the title and a placeholder "Editor coming soon".
 
 **Done when**
+
 - [x] I can create, rename, delete and open documents from the dashboard.
 - [x] Opening a document's id under `/board/...` (or the other way around) shows a 404.
 - [x] Existing boards still appear, open and work exactly as before.
@@ -226,6 +230,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** a clean, working text editor for one person, where the content **already lives in a Y.Doc**, so adding real-time sync in Phase 3 takes only a few lines.
 
 **Tasks**
+
 - [x] 2.1 Install the Tiptap packages from section 2.2 (same major version).
 - [x] 2.2 `lib/yjs/doc-schema.ts`: `createDocumentYDoc()` returns `{ doc, fragment: doc.getXmlFragment('content') }`.
 - [x] 2.3 `components/doc/DocEditor.tsx` (client component), using `useEditor` with:
@@ -234,15 +239,16 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
   - Placeholder: "Start writing…".
   - `immediatelyRender: false`. **No `content` option.**
 - [x] 2.4 Styling (Tailwind, in a `.doc-content` class): centered column, max width about 720px, padding 48px top, base font size 16–17px, line height about 1.7, clear H1/H2 sizes, normal list indentation, visible placeholder in gray. White page on a very light gray background. Focus the editor when the page opens.
-- [x] 2.5 `components/doc/DocToolbar.tsx`: slim sticky row under the top bar with buttons `H1`, `H2`, **B**, *I*, bullet list, numbered list. Each button:
+- [x] 2.5 `components/doc/DocToolbar.tsx`: slim sticky row under the top bar with buttons `H1`, `H2`, **B**, _I_, bullet list, numbered list. Each button:
   - runs the matching editor command (`toggleHeading({ level: 1 })`, `toggleBold()`, and so on),
   - shows as active when `editor.isActive(...)` is true,
   - has a tooltip with its shortcut (Ctrl/⌘+B, Ctrl/⌘+I, Ctrl/⌘+Alt+1, Ctrl/⌘+Alt+2, Ctrl/⌘+Shift+8, Ctrl/⌘+Shift+7).
-  Undo and Redo buttons are added in Phase 7.
+    Undo and Redo buttons are added in Phase 7.
 - [x] 2.6 Check that markdown shortcuts work: `# `, `## `, `- `, `1. `, `**text**`, `*text*`.
 - [x] 2.7 Unit test (vitest): creating the Y.Doc and inserting text into the fragment gives the expected `toJSON()` / text.
 
 **Done when**
+
 - [x] I can write and format text with every toolbar button and shortcut.
 - [x] Logging `doc.getXmlFragment('content').toString()` shows my text and formatting.
 - [x] No hydration warnings in the browser console.
@@ -254,6 +260,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** two windows on the same document see each other's typing instantly, with no lost or duplicated text.
 
 **Tasks**
+
 - [x] 3.1 Generalize the existing connection helper (for example, `connectBoard` → `connectItem(itemId, doc)`) so it works for documents. Boards must still use it unchanged. The room name stays the **item id**.
 - [x] 3.2 Create the Y.Doc and provider **once** per document page in a client component (`DocClient`) and destroy both on unmount. Handle React Strict Mode running effects twice, the same way the board page does.
 - [x] 3.3 Create the editor only **after** the Y.Doc exists. Show a light "Loading document…" until the first sync (Phase 6 changes this to show IndexedDB content first).
@@ -263,6 +270,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 - [x] 3.7 Make sure `Board.updatedAt` (the item's `updatedAt`) changes when document content is saved, so the dashboard's "Edited …" stays correct.
 
 **Done when**
+
 - [x] Two windows typing **in the same paragraph at the same time** both see the same final text, and no characters are lost.
 - [x] Formatting changes (bold, headings, lists) sync both ways.
 - [x] Close every tab, restart the sync server, and reopen the document: the content is still there.
@@ -276,12 +284,14 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** see where other people are typing, and who is in the document.
 
 **Tasks**
+
 - [x] 4.1 Add the collaboration caret extension (section 2.2) with `provider` and `user: { name, color }`. Use the **same** name and color logic the whiteboard uses for awareness, so a user has the same color everywhere.
 - [x] 4.2 Style the carets minimally: a 2px colored line, a small name label above it in the user's color with white text, and a light (about 20% opacity) background on selected text.
 - [x] 4.3 Reuse the **Avatars** component in the top bar for documents (it reads the same awareness `user` field).
 - [x] 4.4 Make sure leaving the page clears this user's awareness state (same as boards).
 
 **Done when**
+
 - [x] With two windows open, each shows the other's caret with their name, moving as they type.
 - [x] Selecting text in one window highlights it in the other in that user's color.
 - [x] Closing a tab removes its caret and avatar within a few seconds.
@@ -294,12 +304,14 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** sharing works for documents exactly as for boards, and viewers can't edit.
 
 **Tasks**
+
 - [x] 5.1 Reuse the **Share** dialog for documents (wording: "Anyone with the link can edit / view this document").
 - [x] 5.2 The `/join/[token]` page must redirect to `/doc/[id]` or `/board/[id]` depending on `kind`.
 - [x] 5.3 **Viewer mode in the editor:** `editor.setEditable(false)`, hide the formatting toolbar, show the existing "View only" badge. The server read-only connection (existing auth hook) is the real protection.
 - [x] 5.4 Viewers still see other people's carets and the online avatars.
 
 **Done when**
+
 - [x] An edit link opened by another user in a private window allows typing. A view link allows reading only.
 - [x] A viewer's change made manually in DevTools doesn't reach other users or the database.
 - [x] **Reset links** works for documents.
@@ -312,15 +324,17 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** writing keeps working without internet, and changes merge on reconnect.
 
 **Tasks**
-- [ ] 6.1 Make sure the generalized connection helper also sets up **y-indexeddb** for documents (it should come from the board setup automatically).
-- [ ] 6.2 Show the editor as soon as **either** IndexedDB has loaded **or** the provider has synced, whichever comes first.
-- [ ] 6.3 Reuse the offline banner and the "Back online" toast.
-- [ ] 6.4 Make sure logging out also clears IndexedDB data for documents.
+
+- [x] 6.1 Make sure the generalized connection helper also sets up **y-indexeddb** for documents (it should come from the board setup automatically).
+- [x] 6.2 Show the editor as soon as **either** IndexedDB has loaded **or** the provider has synced, whichever comes first.
+- [x] 6.3 Reuse the offline banner and the "Back online" toast.
+- [x] 6.4 Make sure logging out also clears IndexedDB data for documents.
 
 **Done when**
-- [ ] With DevTools set to Offline, I can keep typing, and a refresh while offline still shows my text.
-- [ ] Two windows edit the same paragraph while one is offline. After reconnecting, both show the same text containing **both** people's words.
-- [ ] A document I've opened before appears instantly.
+
+- [x] With DevTools set to Offline, I can keep typing, and a refresh while offline still shows my text.
+- [x] Two windows edit the same paragraph while one is offline. After reconnecting, both show the same text containing **both** people's words.
+- [x] A document I've opened before appears instantly.
 
 ---
 
@@ -329,12 +343,14 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** Ctrl/⌘+Z undoes **only your own** typing and formatting.
 
 **Tasks**
+
 - [ ] 7.1 Confirm Tiptap's built-in history is **off** (Phase 2.3) and the Collaboration extension's Yjs undo is active.
 - [ ] 7.2 Add **Undo** and **Redo** buttons to the right end of the formatting toolbar, using the Collaboration extension's `undo()` / `redo()` commands. Disable them when there's nothing to undo or redo (`editor.can().undo()` / `can().redo()`).
 - [ ] 7.3 Shortcuts: Ctrl/⌘+Z, Ctrl/⌘+Shift+Z, Ctrl/⌘+Y. These come from the extension, so check them.
 - [ ] 7.4 Viewers: no undo or redo buttons.
 
 **Done when**
+
 - [ ] Alice and Bob type in the same paragraph. Alice's undo removes only Alice's words.
 - [ ] Undo and redo sync to the other window like normal edits.
 - [ ] Undo works naturally (word or phrase chunks, not one letter at a time).
@@ -346,6 +362,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** save versions of a document and restore one safely, even while others are editing.
 
 **Tasks**
+
 - [ ] 8.1 Reuse the existing **save version** server action and the **History** dialog for documents (list, names, who saved, relative time, Restore button with confirm dialog). The stored state is the full Y.Doc, the same as for boards.
 - [ ] 8.2 `lib/yjs/doc-restore.ts`, **restore by moving forward. Never overwrite the stored `state` directly.**
   1. **Before restoring, save the current content automatically** as a version named "Before restore" (simple safety net).
@@ -358,6 +375,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 - [ ] 8.5 Note in `docs/decisions.md`: why restoring replaces the fragment content in one transaction instead of overwriting the database (connected clients would merge newer content back in).
 
 **Done when**
+
 - [ ] Save a version, change a lot, restore: the document looks exactly like the saved version.
 - [ ] Restoring while another window is open updates that window too, and the restore isn't undone by the other window's sync.
 - [ ] The "Before restore" version appears in the list and can itself be restored.
@@ -370,6 +388,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 **Goal:** the feature is tested, documented and works in production alongside boards.
 
 **Tasks**
+
 - [ ] 9.1 **Convergence test (vitest):** two Y.Docs, each inserting and deleting text at random positions in a `Y.XmlFragment` (or `Y.Text` inside it). Exchange updates in random order (including duplicates) and check that both docs end up with the same `toString()`. Run with a few random seeds.
 - [ ] 9.2 **Playwright end-to-end test** (`e2e/docs-collab.spec.ts`) with two browser contexts, two seeded users, one shared document:
   - User A types "Hello" → user B sees "Hello".
@@ -384,6 +403,7 @@ Each phase has a **Goal**, **Tasks** (tick them as you finish), and **Done when*
 - [ ] 9.7 Delete `docs/docs-feature-audit.md` or move its useful parts into `docs/decisions.md`.
 
 **Done when**
+
 - [ ] All unit and end-to-end tests pass locally. CI is green.
 - [ ] In production: create a document, share an edit link, two people type together with visible carets, offline works, undo works, and restore works.
 - [ ] Boards still work fully in production.
@@ -418,3 +438,4 @@ Check these at the very end, on the deployed app:
 - 2026-10-19 – Phase 3 complete – connectItem/clearLocalItems, DocClient with provider + IndexedDB, status dot and Saved/Saving…, sync server unchanged – verified simultaneous typing, formatting sync, no duplication on reload, persistence across a sync-server restart
 - 2026-10-19 – Phase 4 complete – CollaborationCaret with shared name/color logic, 2px caret + label + 20% selection, Avatars reused, presence cleared on unload (≈220 ms) – y-tiptap's position-migration map is the only non-content Y type; it holds no user/cursor data
 - 2026-10-19 – Phase 5 complete – viewer mode (not editable, no toolbar, View only), edit/view/reset links and join redirect verified for documents, server drops viewer writes, leave works, board sharing unchanged – known limitation: a viewer's DevTools-forced local edit syncs if they're later upgraded to editor (same as boards; see decisions.md)
+- 2026-10-19 – Phase 6 complete – IndexedDB + show-on-first-load already shared via connectItem/useConnectionStatus; OfflineBanner and useBackOnlineToast extracted and reused; offline merge, server-down reload, logout cleanup verified – browser-offline reload still needs a service worker (out of scope, same as boards)

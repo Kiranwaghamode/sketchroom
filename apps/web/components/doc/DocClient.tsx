@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import type { IndexeddbPersistence } from "y-indexeddb";
 import type * as Y from "yjs";
 import { TopBar } from "@/components/board/TopBar";
+import { OfflineBanner, useBackOnlineToast } from "@/components/shared/offline";
 import { userColor } from "@/lib/presence";
 import { createDocumentYDoc } from "@/lib/yjs/doc-schema";
 import { useConnectionStatus } from "@/lib/yjs/hooks";
@@ -72,6 +73,7 @@ function ConnectedDoc({ session, ...props }: Props & { session: Session }) {
     session.provider,
     session.local,
   );
+  useBackOnlineToast(status, saving);
   return (
     <DocLayout
       {...props}
@@ -109,7 +111,9 @@ function DocLayout({
         saving={session ? saving : undefined}
         awareness={session?.provider.awareness ?? undefined}
       />
-      {/* The editor is created only after the Y.Doc has its content. */}
+      {status === "offline" && <OfflineBanner />}
+      {/* The editor is created only after the Y.Doc has its content, from
+          IndexedDB or the server, whichever comes first (useConnectionStatus). */}
       {session ? (
         <DocEditor
           doc={session.doc}

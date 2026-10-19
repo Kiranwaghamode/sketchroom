@@ -3,11 +3,11 @@
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { Role } from "@whiteboard/db";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
 import type { IndexeddbPersistence } from "y-indexeddb";
 import type * as Y from "yjs";
 import { Cursors } from "@/components/canvas/Cursors";
+import { OfflineBanner, useBackOnlineToast } from "@/components/shared/offline";
 import { userColor } from "@/lib/presence";
 import { useConnectionStatus } from "@/lib/yjs/hooks";
 import { connectItem } from "@/lib/yjs/provider";
@@ -93,15 +93,7 @@ function ConnectedBoard({ session, ...props }: Props & { session: Session }) {
     session.local,
   );
 
-  // "Back online" once we reconnect after being offline and everything has synced.
-  const wasOffline = useRef(false);
-  useEffect(() => {
-    if (status === "offline") wasOffline.current = true;
-    else if (status === "connected" && !saving && wasOffline.current) {
-      wasOffline.current = false;
-      toast.success("Back online – changes synced");
-    }
-  }, [status, saving]);
+  useBackOnlineToast(status, saving);
 
   return (
     <BoardLayout
@@ -140,12 +132,7 @@ function BoardLayout({
           session && { doc: session.doc, undoManager: session.undoManager }
         }
       />
-      {status === "offline" && (
-        <div className="shrink-0 border-b border-yellow-200 bg-yellow-50 px-4 py-1.5 text-center text-sm text-yellow-900">
-          You&rsquo;re offline – changes are saved on this device and will sync
-          when you&rsquo;re back online.
-        </div>
-      )}
+      {status === "offline" && <OfflineBanner />}
       <main className="relative flex-1 overflow-hidden">
         {session ? (
           <>

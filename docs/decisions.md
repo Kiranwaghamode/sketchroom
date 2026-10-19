@@ -285,3 +285,11 @@ After installing packages while `next dev` was stopped, the restarted dev server
 **Verified:** a view link gives a read-only page where typing does nothing. A viewer writing straight into `window.doc` from DevTools changes only their own copy: the owner never receives it, and a fresh window loading from the server doesn't have it (Hocuspocus drops updates from `readOnly` connections). Reset links makes the old link show "This link is invalid or was reset." A new edit link upgrades the same person to editor. Leaving a document removes it from the dashboard, and the URL then returns 404. Board sharing is unchanged.
 
 **Known limitation (same as boards):** an edit a viewer forces into their local Y.Doc through DevTools stays in their IndexedDB copy. If that person is **later given edit access**, the next sync sends it like any other pending offline edit. This isn't a privilege escalation, because at that point they're allowed to write anything anyway, and it can't happen through the UI. A fix would be to not keep an offline copy for viewers, or to clear it when the role changes. Neither is in the plan, so neither is built.
+
+---
+
+## 2026-10-19 – Offline documents (PLAN2 Phase 6)
+
+**What:** nothing document-specific was needed for syncing. `connectItem` attaches y-indexeddb (prefix `whiteboard-board-`) to every item, `useConnectionStatus` already shows the content when **either** IndexedDB or the server has loaded, and logout's `clearLocalItems` deletes every database with that prefix. The offline banner and the "Back online – changes synced" toast moved from `BoardClient` into `components/shared/offline.tsx` (`OfflineBanner`, `useBackOnlineToast`), with the same markup and logic, and both pages use them.
+
+**Verified:** with A's browser offline, A and B typed in the same paragraph. After reconnecting, both windows had identical text containing both sentences, and A got the banner and then the toast. With the sync server stopped, A typed, reloaded, and the text came back from IndexedDB. Once the server was back, it reached B. On reopening, the content appears before `provider.synced` is true (served from IndexedDB). After logout, the document's IndexedDB database is gone. As recorded for boards in Phase 7, a reload with the *browser itself* offline can't load the page without a service worker, which is out of scope.
